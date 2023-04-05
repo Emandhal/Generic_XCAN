@@ -901,12 +901,12 @@ typedef enum
 
   //--- XCAN Interrupt Controller Registers ---
   RegXCAN_InterruptCtrlRegisters = 0xA00u, //!< (Offset: 0xA00) Interrupt Controller Registers
-  // MH and PRT capture event registers
+  // MH and PRT capture event registers (Base Address: 0x00, Address Range: 0x10)
   RegXCAN_FUNC_RAW               = 0xA00u, //!< (Offset: 0xA00) Functional raw event status register
   RegXCAN_ERR_RAW                = 0xA04u, //!< (Offset: 0xA04) Error raw event status register
   RegXCAN_SAFETY_RAW             = 0xA08u, //!< (Offset: 0xA08) Safety raw event status register
                                            //   (Offset: 0xA0C) Reserved
-  // IRC control register
+  // IRC control register (Base Address: 0x10, Address Range: 0x20)
   RegXCAN_FUNC_CLR               = 0xA10u, //!< (Offset: 0xA10) Functional raw event clear register
   RegXCAN_ERR_CLR                = 0xA14u, //!< (Offset: 0xA14) Error raw event clear register
   RegXCAN_SAFETY_CLR             = 0xA18u, //!< (Offset: 0xA18) Safety raw event clear register
@@ -915,10 +915,10 @@ typedef enum
   RegXCAN_ERR_ENA                = 0xA24u, //!< (Offset: 0xA24) Error raw event enable register
   RegXCAN_SAFETY_ENA             = 0xA28u, //!< (Offset: 0xA28) Safety raw event enable register
                                            //   (Offset: 0xA2C) Reserved
-  // Hardware configuration of the IRC
+  // Hardware configuration of the IRC (Base Address: 0x30, Address Range: 0x10)
   RegXCAN_CAPTURING_MODE         = 0xA30u, //!< (Offset: 0xA30) IRC configuration register
                                            //   (Offset: 0xA34..0xA3C) Reserved
-  // Auxiliary
+  // Auxiliary (Base Address: 0x40, Address Range: 0xB0)
   RegXCAN_HDP                    = 0xA40u, //!< (Offset: 0xA40) Hardware Debug Port control register
                                            //   (Offset: 0xA44..0xAFC) Reserved
 } eXCAN_Registers;
@@ -928,8 +928,646 @@ typedef enum
 
 
 //********************************************************************************************************************
-// XCAN Controller Registers
+// XCAN Message Handler Registers
 //********************************************************************************************************************
+
+//-----------------------------------------------------------------------------
+
+
+
+
+
+//********************************************************************************************************************
+// XCAN Protocol Controller Registers
+//********************************************************************************************************************
+
+//-----------------------------------------------------------------------------
+
+
+
+
+
+//********************************************************************************************************************
+// XCAN Interrupt Controller Registers
+//********************************************************************************************************************
+
+/*! XCAN Functional raw event clear register (Write, Offset: 0xA10, Initial value: 0x00000000)
+ * Writing a 1 to a certain bit position clears the corresponding bit of register FUNC_RAW. Writing a ’0’ has no effect
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_FC_Register
+{
+  uint32_t FUNC_CLR;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MH_TX_FQ0_IRQ   : 1; /*!<  0    - MH interrupt of the TX FIFO Queue 0: Clear bit by writing 1
+                                   *           This interrupt is triggered when an invalid TX descriptor is fetched from this TX FIFO Queue, a TX message from that FIFO Queue is sent (if set in TX descriptor),
+                                   *           or a TX message of that TX FIFO Queue is skipped, see description of TX_FQ_IRQ[7:0] in MH section
+                                   */
+    uint32_t MH_TX_FQ1_IRQ   : 1; //!<  1    - MH interrupt of the TX FIFO Queue 1: Clear bit by writing 1
+    uint32_t MH_TX_FQ2_IRQ   : 1; //!<  2    - MH interrupt of the TX FIFO Queue 2: Clear bit by writing 1
+    uint32_t MH_TX_FQ3_IRQ   : 1; //!<  3    - MH interrupt of the TX FIFO Queue 3: Clear bit by writing 1
+    uint32_t MH_TX_FQ4_IRQ   : 1; //!<  4    - MH interrupt of the TX FIFO Queue 4: Clear bit by writing 1
+    uint32_t MH_TX_FQ5_IRQ   : 1; //!<  5    - MH interrupt of the TX FIFO Queue 5: Clear bit by writing 1
+    uint32_t MH_TX_FQ6_IRQ   : 1; //!<  6    - MH interrupt of the TX FIFO Queue 6: Clear bit by writing 1
+    uint32_t MH_TX_FQ7_IRQ   : 1; //!<  7    - MH interrupt of the TX FIFO Queue 7: Clear bit by writing 1
+    uint32_t MH_RX_FQ0_IRQ   : 1; /*!<  8    - MH interrupt of the RX FIFO Queue 0: Clear bit by writing 1
+                                   *           This interrupt is triggered when an invalid RX descriptor is fetched from this RX FIFO Queue,
+                                   *           or an RX message is received (if set in RX descriptor) in this RX FIFO Queue, see description of RX_FQ_IRQ[7:0] in MH section
+                                   */
+    uint32_t MH_RX_FQ1_IRQ   : 1; //!<  9    - MH interrupt of the RX FIFO Queue 1: Clear bit by writing 1
+    uint32_t MH_RX_FQ2_IRQ   : 1; //!< 10    - MH interrupt of the RX FIFO Queue 2: Clear bit by writing 1
+    uint32_t MH_RX_FQ3_IRQ   : 1; //!< 11    - MH interrupt of the RX FIFO Queue 3: Clear bit by writing 1
+    uint32_t MH_RX_FQ4_IRQ   : 1; //!< 12    - MH interrupt of the RX FIFO Queue 4: Clear bit by writing 1
+    uint32_t MH_RX_FQ5_IRQ   : 1; //!< 13    - MH interrupt of the RX FIFO Queue 5: Clear bit by writing 1
+    uint32_t MH_RX_FQ6_IRQ   : 1; //!< 14    - MH interrupt of the RX FIFO Queue 6: Clear bit by writing 1
+    uint32_t MH_RX_FQ7_IRQ   : 1; //!< 15    - MH interrupt of the RX FIFO Queue 7: Clear bit by writing 1
+    uint32_t MH_TX_PQ_IRQ    : 1; /*!< 16    - Interrupt of TX Priority Queue: Clear bit by writing 1
+                                   *           Any TX message sent from the TX Priority Queue can be configured to trigger this interrupt.
+                                   *           The SW would then need to look at the MH register TX_PQ_INT_STS to identify which slot has generated the interrupt and for which reason
+                                   */
+    uint32_t MH_STOP_IRQ     : 1; //!< 17    - The interrupt is triggered when the PRT is stopped. The MH finishes its task and switches to idle mode: Clear bit by writing 1
+    uint32_t MH_RX_FILTER_IRQ: 1; //!< 18    - In order to track RX filtering results, an interrupt can be triggered when the comparison between a RX message header and a defined filter is successful: Clear bit by writing 1
+    uint32_t MH_TX_FILTER_IRQ: 1; //!< 19    - The interrupt is triggered when the TX filter is enabled, and a TX message is rejected: Clear bit by writing 1
+    uint32_t MH_TX_ABORT_IRQ : 1; //!< 20    - This interrupt line is triggered when the MH needs to abort a TX message being sent to the PRT: Clear bit by writing 1
+    uint32_t MH_RX_ABORT_IRQ : 1; //!< 21    - This interrupt line is triggered when the MH needs to abort a RX message being received from PRT: Clear bit by writing 1
+    uint32_t MH_STATS_IRQ    : 1; //!< 22    - One of the RX/TX counters have reached the threshold: Clear bit by writing 1
+    uint32_t                 : 1; //!< 23
+    uint32_t PRT_E_ACTIVE    : 1; //!< 24    - PRT switched from Error-Passive to Error-Active state: Clear bit by writing 1
+    uint32_t PRT_BUS_ON      : 1; //!< 25    - PRT started CAN communication, after start or end of BusOff: Clear bit by writing 1
+    uint32_t PRT_TX_EVT      : 1; //!< 26    - PRT transmitted a valid CAN message: Clear bit by writing 1
+    uint32_t PRT_RX_EVT      : 1; //!< 27    - PRT received a valid CAN message: Clear bit by writing 1
+    uint32_t                 : 4; //!< 28-31
+  } Bits;
+} XCAN_IC_FC_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_FC_Register, 4);
+
+#define XCAN_IC_FC_MH_TX_FQ0_IRQ_CLEAR     (1u <<  0) //!< Enable MH interrupt of the TX FIFO Queue 0 interrupt
+#define XCAN_IC_FC_MH_TX_FQ1_IRQ_CLEAR     (1u <<  1) //!< Enable MH interrupt of the TX FIFO Queue 1 interrupt
+#define XCAN_IC_FC_MH_TX_FQ2_IRQ_CLEAR     (1u <<  2) //!< Enable MH interrupt of the TX FIFO Queue 2 interrupt
+#define XCAN_IC_FC_MH_TX_FQ3_IRQ_CLEAR     (1u <<  3) //!< Enable MH interrupt of the TX FIFO Queue 3 interrupt
+#define XCAN_IC_FC_MH_TX_FQ4_IRQ_CLEAR     (1u <<  4) //!< Enable MH interrupt of the TX FIFO Queue 4 interrupt
+#define XCAN_IC_FC_MH_TX_FQ5_IRQ_CLEAR     (1u <<  5) //!< Enable MH interrupt of the TX FIFO Queue 5 interrupt
+#define XCAN_IC_FC_MH_TX_FQ6_IRQ_CLEAR     (1u <<  6) //!< Enable MH interrupt of the TX FIFO Queue 6 interrupt
+#define XCAN_IC_FC_MH_TX_FQ7_IRQ_CLEAR     (1u <<  7) //!< Enable MH interrupt of the TX FIFO Queue 7 interrupt
+#define XCAN_IC_FC_MH_RX_FQ0_IRQ_CLEAR     (1u <<  8) //!< Enable MH interrupt of the RX FIFO Queue 0 interrupt
+#define XCAN_IC_FC_MH_RX_FQ1_IRQ_CLEAR     (1u <<  9) //!< Enable MH interrupt of the RX FIFO Queue 1 interrupt
+#define XCAN_IC_FC_MH_RX_FQ2_IRQ_CLEAR     (1u << 10) //!< Enable MH interrupt of the RX FIFO Queue 2 interrupt
+#define XCAN_IC_FC_MH_RX_FQ3_IRQ_CLEAR     (1u << 11) //!< Enable MH interrupt of the RX FIFO Queue 3 interrupt
+#define XCAN_IC_FC_MH_RX_FQ4_IRQ_CLEAR     (1u << 12) //!< Enable MH interrupt of the RX FIFO Queue 4 interrupt
+#define XCAN_IC_FC_MH_RX_FQ5_IRQ_CLEAR     (1u << 13) //!< Enable MH interrupt of the RX FIFO Queue 5 interrupt
+#define XCAN_IC_FC_MH_RX_FQ6_IRQ_CLEAR     (1u << 14) //!< Enable MH interrupt of the RX FIFO Queue 6 interrupt
+#define XCAN_IC_FC_MH_RX_FQ7_IRQ_CLEAR     (1u << 15) //!< Enable MH interrupt of the RX FIFO Queue 7 interrupt
+#define XCAN_IC_FC_MH_TX_PQ_IRQ_CLEAR      (1u << 16) //!< Enable Interrupt of TX Priority Queue interrupt
+#define XCAN_IC_FC_MH_STOP_IRQ_CLEAR       (1u << 17) //!< Enable The interrupt is triggered when the PRT is stopped interrupt
+#define XCAN_IC_FC_MH_RX_FILTER_IRQ_CLEAR  (1u << 18) //!< Enable In order to track RX filtering results, an interrupt can be triggered when the comparison between a RX message header and a defined filter is successful interrupt
+#define XCAN_IC_FC_MH_TX_FILTER_IRQ_CLEAR  (1u << 19) //!< Enable The interrupt is triggered when the TX filter is enabled, and a TX message is rejected interrupt
+#define XCAN_IC_FC_MH_TX_ABORT_IRQ_CLEAR   (1u << 20) //!< Enable This interrupt line is triggered when the MH needs to abort a TX message being sent to the PRT interrupt
+#define XCAN_IC_FC_MH_RX_ABORT_IRQ_CLEAR   (1u << 21) //!< Enable This interrupt line is triggered when the MH needs to abort a RX message being received from PRT interrupt
+#define XCAN_IC_FC_MH_STATS_IRQ_CLEAR      (1u << 22) //!< Enable One of the RX/TX counters have reached the threshold interrupt
+
+#define XCAN_IC_FC_PRT_E_ACTIVE_CLEAR      (1u << 24) //!< Enable PRT switched from Error-Passive to Error-Active state interrupt
+#define XCAN_IC_FC_PRT_BUS_ON_CLEAR        (1u << 25) //!< Enable PRT started CAN communication, after start or end of BusOff interrupt
+#define XCAN_IC_FC_PRT_TX_EVT_CLEAR        (1u << 26) //!< Enable PRT transmitted a valid CAN message interrupt
+#define XCAN_IC_FC_PRT_RX_EVT_CLEAR        (1u << 27) //!< Enable PRT received a valid CAN message interrupt
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Error raw event clear register (Write, Offset: 0xA14, Initial value: 0x00000000)
+ * Writing a 1 to a certain bit position clears the corresponding bit of register ERR_RAW. Writing a ’0’ has no effect
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_EC_Register
+{
+  uint32_t ERR_CLR;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MH_RX_FILTER_ERR: 1; //!<  0    - MH RX filtering has not finished in time, i.e. current RX filtering has not been completed before next incoming RX message requires RX filtering: Clear bit by writing 1
+    uint32_t MH_MEM_SFTY_ERR : 1; /*!<  1    - MH detected error in L_MEM error interrupt: Clear bit by writing 1
+                                   *           This interrupt is triggered when either the MEM_SFTY_CE or MEM_SFTY_UE input signal is active.
+                                   *           The Message Handler provides the information, which signal was active, see flags MH:SFTY_INT_STS.MEM_SFTY_CE and MH:SFTY_INT_STS.MEM_SFTY_UE
+                                   */
+    uint32_t MH_REG_CRC_ERR  : 1; //!<  2    - MH detected CRC error at the register bank. See also description of REG_CRC_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DESC_ERR     : 1; /*!<  3    - CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt: Clear bit by writing 1
+                                   *           A status flag can define if it is on TX or RX path, see SFTY_INT_STS register
+                                   */
+    uint32_t MH_AP_PARITY_ERR: 1; /*!<  4    - MH detected parity error at address pointers, used to manage the MH Queues (RX/TX FIFO Queues and TX Priority Queues) error interrupt: Clear bit by writing 1
+                                   *           See also description of AP_PARITY_ERR in MH section
+                                   */
+    uint32_t MH_DP_PARITY_ERR: 1; /*!<  5    - MH detected parity error at RX message data error interrupt: Clear bit by writing 1
+                                   *           (received from PRT and written to AXI system bus) respective parity error detected at TX message data (read from AXI system bus and transferred to PRT).
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX message or TX message was affected
+                                   */
+    uint32_t MH_DP_SEQ_ERR   : 1; /*!<  6    - MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt: Clear bit by writing 1
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX or TX interface was affected
+                                   */
+    uint32_t MH_DP_DO_ERR    : 1; //!<  7    - MH detected a data overflow at RX buffer, see description of DP_DO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DP_TO_ERR    : 1; //!<  8    - MH detected timeout at TX_MSG interface located between MH and PRT, see description of DP_TO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DMA_TO_ERR   : 1; //!<  9    - MH detected timeout at DMA_AXI interface, see description of DMA_TO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DMA_CH_ERR   : 1; //!< 10    - MH detected routing error, i.e. data received or sent are not properly routed to or from DMA channel interfaces, see description of DMA_CH_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_RD_RESP_ERR  : 1; //!< 11    - MH detected a bus error caused by a read access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_WR_RESP_ERR  : 1; //!< 12    - MH detected a bus error caused by a write access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_MEM_TO_ERR   : 1; //!< 13    - MH detected timeout at local memory interface MEM_AXI, see description of MEM_TO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t                 : 2; //!< 14-15
+    uint32_t PRT_ABORTED     : 1; //!< 16    - PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT: Clear bit by writing 1
+    uint32_t PRT_USOS        : 1; //!< 17    - PRT detected unexpected Start of Sequence during TX_MSG sequence: Clear bit by writing 1
+    uint32_t PRT_TX_DU       : 1; //!< 18    - PRT detected underrun condition at TX_MSG sequence: Clear bit by writing 1
+    uint32_t PRT_RX_DO       : 1; //!< 19    - PRT detected overflow condition at RX_MSG sequence: Clear bit by writing 1
+    uint32_t PRT_IFF_RQ      : 1; //!< 20    - PRT detected invalid Frame Format at TX_MSG: Clear bit by writing 1
+    uint32_t PRT_BUS_ERR     : 1; //!< 21    - PRT detected error on the CAN Bus: Clear bit by writing 1
+    uint32_t PRT_E_PASSIVE   : 1; //!< 22    - PRT switched from Error-Active to Error-Passive state: Clear bit by writing 1
+    uint32_t PRT_BUS_OFF     : 1; //!< 23    - PRT entered Bus_Off state: Clear bit by writing 1
+    uint32_t                 : 4; //!< 24-27
+    uint32_t TOP_MUX_TO_ERR  : 1; //!< 28    - Timeout at top-level multiplexer error interrupt: Clear bit by writing 1
+    uint32_t                 : 3; //!< 29-31
+  } Bits;
+} XCAN_IC_EC_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_EC_Register, 4);
+
+#define XCAN_IC_EC_MH_RX_FILTER_ERR_CLEAR  (1u <<  0) //!< Clear MH RX filtering has not finished in time error interrupt
+#define XCAN_IC_EC_MH_MEM_SFTY_ERR_CLEAR   (1u <<  1) //!< Clear MH detected error in L_MEM error interrupt
+#define XCAN_IC_EC_MH_REG_CRC_ERR_CLEAR    (1u <<  2) //!< Clear MH detected CRC error at the register bank error interrupt
+#define XCAN_IC_EC_MH_DESC_ERR_CLEAR       (1u <<  3) //!< Clear CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt
+#define XCAN_IC_EC_MH_AP_PARITY_ERR_CLEAR  (1u <<  4) //!< Clear MH detected parity error at address pointers error interrupt
+#define XCAN_IC_EC_MH_DP_PARITY_ERR_CLEAR  (1u <<  5) //!< Clear MH detected parity error at RX message data error interrupt
+#define XCAN_IC_EC_MH_DP_SEQ_ERR_CLEAR     (1u <<  6) //!< Clear MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt
+#define XCAN_IC_EC_MH_DP_DO_ERR_CLEAR      (1u <<  7) //!< Clear MH detected a data overflow at RX buffer error interrupt
+#define XCAN_IC_EC_MH_DP_TO_ERR_CLEAR      (1u <<  8) //!< Clear MH detected timeout at TX_MSG interface located between MH and PRT error interrupt
+#define XCAN_IC_EC_MH_DMA_TO_ERR_CLEAR     (1u <<  9) //!< Clear MH detected timeout at DMA_AXI interface error interrupt
+#define XCAN_IC_EC_MH_DMA_CH_ERR_CLEAR     (1u << 10) //!< Clear MH detected routing error interrupt
+#define XCAN_IC_EC_MH_RD_RESP_ERR_CLEAR    (1u << 11) //!< Clear MH detected a bus error caused by a read access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_EC_MH_WR_RESP_ERR_CLEAR    (1u << 12) //!< Clear MH detected a bus error caused by a write access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_EC_MH_MEM_TO_ERR_CLEAR     (1u << 13) //!< Clear MH detected timeout at local memory interface MEM_AXI error interrupt
+
+#define XCAN_IC_EC_PRT_ABORTED_CLEAR       (1u << 16) //!< Clear PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT interrupt
+#define XCAN_IC_EC_PRT_USOS_CLEAR          (1u << 17) //!< Clear PRT detected unexpected Start of Sequence during TX_MSG sequence interrupt
+#define XCAN_IC_EC_PRT_TX_DU_CLEAR         (1u << 18) //!< Clear PRT detected underrun condition at TX_MSG sequence interrupt
+#define XCAN_IC_EC_PRT_RX_DO_CLEAR         (1u << 19) //!< Clear PRT detected overflow condition at RX_MSG sequence interrupt
+#define XCAN_IC_EC_PRT_IFF_RQ_CLEAR        (1u << 20) //!< Clear PRT detected invalid Frame Format at TX_MSG interrupt
+#define XCAN_IC_EC_PRT_BUS_ERR_CLEAR       (1u << 21) //!< Clear PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_EC_PRT_E_PASSIVE_CLEAR     (1u << 22) //!< Clear PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_EC_PRT_BUS_OFF_CLEAR       (1u << 23) //!< Clear PRT entered Bus_Off state interrupt
+
+#define XCAN_IC_EC_TOP_MUX_TO_ERR_CLEAR    (1u << 28) //!< Clear Timeout at top-level multiplexer error interrupt
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Safety raw event clear register (Write, Offset: 0xA18, Initial value: 0x00000000)
+ * Writing a 1 to a certain bit position clears the corresponding bit of register SAFETY_RAW. Writing a ’0’ has no effect
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_SC_Register
+{
+  uint32_t SAFETY_CLR;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MH_RX_FILTER_ERR: 1; //!<  0    - MH RX filtering has not finished in time, i.e. current RX filtering has not been completed before next incoming RX message requires RX filtering: Clear bit by writing 1
+    uint32_t MH_MEM_SFTY_ERR : 1; /*!<  1    - MH detected error in L_MEM error interrupt: Clear bit by writing 1
+                                   *           This interrupt is triggered when either the MEM_SFTY_CE or MEM_SFTY_UE input signal is active.
+                                   *           The Message Handler provides the information, which signal was active, see flags MH:SFTY_INT_STS.MEM_SFTY_CE and MH:SFTY_INT_STS.MEM_SFTY_UE
+                                   */
+    uint32_t MH_REG_CRC_ERR  : 1; //!<  2    - MH detected CRC error at the register bank. See also description of REG_CRC_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DESC_ERR     : 1; /*!<  3    - CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt: Clear bit by writing 1
+                                   *           A status flag can define if it is on TX or RX path, see SFTY_INT_STS register
+                                   */
+    uint32_t MH_AP_PARITY_ERR: 1; /*!<  4    - MH detected parity error at address pointers, used to manage the MH Queues (RX/TX FIFO Queues and TX Priority Queues) error interrupt: Clear bit by writing 1
+                                   *           See also description of AP_PARITY_ERR in MH section
+                                   */
+    uint32_t MH_DP_PARITY_ERR: 1; /*!<  5    - MH detected parity error at RX message data error interrupt: Clear bit by writing 1
+                                   *           (received from PRT and written to AXI system bus) respective parity error detected at TX message data (read from AXI system bus and transferred to PRT).
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX message or TX message was affected
+                                   */
+    uint32_t MH_DP_SEQ_ERR   : 1; /*!<  6    - MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt: Clear bit by writing 1
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX or TX interface was affected
+                                   */
+    uint32_t MH_DP_DO_ERR    : 1; //!<  7    - MH detected a data overflow at RX buffer, see description of DP_DO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DP_TO_ERR    : 1; //!<  8    - MH detected timeout at TX_MSG interface located between MH and PRT, see description of DP_TO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DMA_TO_ERR   : 1; //!<  9    - MH detected timeout at DMA_AXI interface, see description of DMA_TO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_DMA_CH_ERR   : 1; //!< 10    - MH detected routing error, i.e. data received or sent are not properly routed to or from DMA channel interfaces, see description of DMA_CH_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_RD_RESP_ERR  : 1; //!< 11    - MH detected a bus error caused by a read access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_WR_RESP_ERR  : 1; //!< 12    - MH detected a bus error caused by a write access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t MH_MEM_TO_ERR   : 1; //!< 13    - MH detected timeout at local memory interface MEM_AXI, see description of MEM_TO_ERR in MH section error interrupt: Clear bit by writing 1
+    uint32_t                 : 2; //!< 14-15
+    uint32_t PRT_ABORTED     : 1; //!< 16    - PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT: Clear bit by writing 1
+    uint32_t PRT_USOS        : 1; //!< 17    - PRT detected unexpected Start of Sequence during TX_MSG sequence: Clear bit by writing 1
+    uint32_t PRT_TX_DU       : 1; //!< 18    - PRT detected underrun condition at TX_MSG sequence: Clear bit by writing 1
+    uint32_t PRT_RX_DO       : 1; //!< 19    - PRT detected overflow condition at RX_MSG sequence: Clear bit by writing 1
+    uint32_t PRT_IFF_RQ      : 1; //!< 20    - PRT detected invalid Frame Format at TX_MSG: Clear bit by writing 1
+    uint32_t PRT_BUS_ERR     : 1; //!< 21    - PRT detected error on the CAN Bus: Clear bit by writing 1
+    uint32_t PRT_E_PASSIVE   : 1; //!< 22    - PRT switched from Error-Active to Error-Passive state: Clear bit by writing 1
+    uint32_t PRT_BUS_OFF     : 1; //!< 23    - PRT entered Bus_Off state: Clear bit by writing 1
+    uint32_t                 : 4; //!< 24-27
+    uint32_t TOP_MUX_TO_ERR  : 1; //!< 28    - Timeout at top-level multiplexer error interrupt: Clear bit by writing 1
+    uint32_t                 : 3; //!< 29-31
+  } Bits;
+} XCAN_IC_SC_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_SC_Register, 4);
+
+#define XCAN_IC_SC_MH_RX_FILTER_ERR_CLEAR  (1u <<  0) //!< Clear MH RX filtering has not finished in time error interrupt
+#define XCAN_IC_SC_MH_MEM_SFTY_ERR_CLEAR   (1u <<  1) //!< Clear MH detected error in L_MEM error interrupt
+#define XCAN_IC_SC_MH_REG_CRC_ERR_CLEAR    (1u <<  2) //!< Clear MH detected CRC error at the register bank error interrupt
+#define XCAN_IC_SC_MH_DESC_ERR_CLEAR       (1u <<  3) //!< Clear CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt
+#define XCAN_IC_SC_MH_AP_PARITY_ERR_CLEAR  (1u <<  4) //!< Clear MH detected parity error at address pointers error interrupt
+#define XCAN_IC_SC_MH_DP_PARITY_ERR_CLEAR  (1u <<  5) //!< Clear MH detected parity error at RX message data error interrupt
+#define XCAN_IC_SC_MH_DP_SEQ_ERR_CLEAR     (1u <<  6) //!< Clear MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt
+#define XCAN_IC_SC_MH_DP_DO_ERR_CLEAR      (1u <<  7) //!< Clear MH detected a data overflow at RX buffer error interrupt
+#define XCAN_IC_SC_MH_DP_TO_ERR_CLEAR      (1u <<  8) //!< Clear MH detected timeout at TX_MSG interface located between MH and PRT error interrupt
+#define XCAN_IC_SC_MH_DMA_TO_ERR_CLEAR     (1u <<  9) //!< Clear MH detected timeout at DMA_AXI interface error interrupt
+#define XCAN_IC_SC_MH_DMA_CH_ERR_CLEAR     (1u << 10) //!< Clear MH detected routing error interrupt
+#define XCAN_IC_SC_MH_RD_RESP_ERR_CLEAR    (1u << 11) //!< Clear MH detected a bus error caused by a read access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_SC_MH_WR_RESP_ERR_CLEAR    (1u << 12) //!< Clear MH detected a bus error caused by a write access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_SC_MH_MEM_TO_ERR_CLEAR     (1u << 13) //!< Clear MH detected timeout at local memory interface MEM_AXI error interrupt
+
+#define XCAN_IC_SC_PRT_ABORTED_CLEAR       (1u << 16) //!< Clear PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT interrupt
+#define XCAN_IC_SC_PRT_USOS_CLEAR          (1u << 17) //!< Clear PRT detected unexpected Start of Sequence during TX_MSG sequence interrupt
+#define XCAN_IC_SC_PRT_TX_DU_CLEAR         (1u << 18) //!< Clear PRT detected underrun condition at TX_MSG sequence interrupt
+#define XCAN_IC_SC_PRT_RX_DO_CLEAR         (1u << 19) //!< Clear PRT detected overflow condition at RX_MSG sequence interrupt
+#define XCAN_IC_SC_PRT_IFF_RQ_CLEAR        (1u << 20) //!< Clear PRT detected invalid Frame Format at TX_MSG interrupt
+#define XCAN_IC_SC_PRT_BUS_ERR_CLEAR       (1u << 21) //!< Clear PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_SC_PRT_E_PASSIVE_CLEAR     (1u << 22) //!< Clear PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_SC_PRT_BUS_OFF_CLEAR       (1u << 23) //!< Clear PRT entered Bus_Off state interrupt
+
+#define XCAN_IC_SC_TOP_MUX_TO_ERR_CLEAR    (1u << 28) //!< Clear Timeout at top-level multiplexer error interrupt
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Functional raw event enable register (Read/Write, Offset: 0xA20, Initial value: 0x00000000)
+ * Any bit in the FUNC_ENA register enables the corresponding bit in the FUNC_RAW to trigger the interrupt line FUNC_INT.
+ * The interrupt line gets active high, when at least one RAW/ENA pair is 1, e.g. FUNC_RAW.MH_TX_FQ_IRQ = FUNC_ENA.MH_TX_FQ_IRQ = 1
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_FE_Register
+{
+  uint32_t FUNC_ENA;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MH_TX_FQ0_IRQ   : 1; /*!<  0    - MH interrupt of the TX FIFO Queue 0: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           This interrupt is triggered when an invalid TX descriptor is fetched from this TX FIFO Queue, a TX message from that FIFO Queue is sent (if set in TX descriptor),
+                                   *           or a TX message of that TX FIFO Queue is skipped, see description of TX_FQ_IRQ[7:0] in MH section
+                                   */
+    uint32_t MH_TX_FQ1_IRQ   : 1; //!<  1    - MH interrupt of the TX FIFO Queue 1: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FQ2_IRQ   : 1; //!<  2    - MH interrupt of the TX FIFO Queue 2: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FQ3_IRQ   : 1; //!<  3    - MH interrupt of the TX FIFO Queue 3: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FQ4_IRQ   : 1; //!<  4    - MH interrupt of the TX FIFO Queue 4: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FQ5_IRQ   : 1; //!<  5    - MH interrupt of the TX FIFO Queue 5: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FQ6_IRQ   : 1; //!<  6    - MH interrupt of the TX FIFO Queue 6: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FQ7_IRQ   : 1; //!<  7    - MH interrupt of the TX FIFO Queue 7: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ0_IRQ   : 1; /*!<  8    - MH interrupt of the RX FIFO Queue 0: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           This interrupt is triggered when an invalid RX descriptor is fetched from this RX FIFO Queue,
+                                   *           or an RX message is received (if set in RX descriptor) in this RX FIFO Queue, see description of RX_FQ_IRQ[7:0] in MH section
+                                   */
+    uint32_t MH_RX_FQ1_IRQ   : 1; //!<  9    - MH interrupt of the RX FIFO Queue 1: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ2_IRQ   : 1; //!< 10    - MH interrupt of the RX FIFO Queue 2: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ3_IRQ   : 1; //!< 11    - MH interrupt of the RX FIFO Queue 3: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ4_IRQ   : 1; //!< 12    - MH interrupt of the RX FIFO Queue 4: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ5_IRQ   : 1; //!< 13    - MH interrupt of the RX FIFO Queue 5: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ6_IRQ   : 1; //!< 14    - MH interrupt of the RX FIFO Queue 6: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FQ7_IRQ   : 1; //!< 15    - MH interrupt of the RX FIFO Queue 7: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_PQ_IRQ    : 1; /*!< 16    - Interrupt of TX Priority Queue: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           Any TX message sent from the TX Priority Queue can be configured to trigger this interrupt.
+                                   *           The SW would then need to look at the MH register TX_PQ_INT_STS to identify which slot has generated the interrupt and for which reason
+                                   */
+    uint32_t MH_STOP_IRQ     : 1; //!< 17    - The interrupt is triggered when the PRT is stopped. The MH finishes its task and switches to idle mode: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_FILTER_IRQ: 1; //!< 18    - In order to track RX filtering results, an interrupt can be triggered when the comparison between a RX message header and a defined filter is successful: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_FILTER_IRQ: 1; //!< 19    - The interrupt is triggered when the TX filter is enabled, and a TX message is rejected: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_TX_ABORT_IRQ : 1; //!< 20    - This interrupt line is triggered when the MH needs to abort a TX message being sent to the PRT: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RX_ABORT_IRQ : 1; //!< 21    - This interrupt line is triggered when the MH needs to abort a RX message being received from PRT: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_STATS_IRQ    : 1; //!< 22    - One of the RX/TX counters have reached the threshold: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 1; //!< 23
+    uint32_t PRT_E_ACTIVE    : 1; //!< 24    - PRT switched from Error-Passive to Error-Active state: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_BUS_ON      : 1; //!< 25    - PRT started CAN communication, after start or end of BusOff: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_TX_EVT      : 1; //!< 26    - PRT transmitted a valid CAN message: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_RX_EVT      : 1; //!< 27    - PRT received a valid CAN message: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 4; //!< 28-31
+  } Bits;
+} XCAN_IC_FE_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_FE_Register, 4);
+
+#define XCAN_IC_FE_MH_TX_FQ0_IRQ_EN      (1u <<  0) //!< Enable MH interrupt of the TX FIFO Queue 0 interrupt
+#define XCAN_IC_FE_MH_TX_FQ0_IRQ_DIS     (0u <<  0) //!< Disable MH interrupt of the TX FIFO Queue 0 interrupt
+#define XCAN_IC_FE_MH_TX_FQ1_IRQ_EN      (1u <<  1) //!< Enable MH interrupt of the TX FIFO Queue 1 interrupt
+#define XCAN_IC_FE_MH_TX_FQ1_IRQ_DIS     (0u <<  1) //!< Disable MH interrupt of the TX FIFO Queue 1 interrupt
+#define XCAN_IC_FE_MH_TX_FQ2_IRQ_EN      (1u <<  2) //!< Enable MH interrupt of the TX FIFO Queue 2 interrupt
+#define XCAN_IC_FE_MH_TX_FQ2_IRQ_DIS     (0u <<  2) //!< Disable MH interrupt of the TX FIFO Queue 2 interrupt
+#define XCAN_IC_FE_MH_TX_FQ3_IRQ_EN      (1u <<  3) //!< Enable MH interrupt of the TX FIFO Queue 3 interrupt
+#define XCAN_IC_FE_MH_TX_FQ3_IRQ_DIS     (0u <<  3) //!< Disable MH interrupt of the TX FIFO Queue 3 interrupt
+#define XCAN_IC_FE_MH_TX_FQ4_IRQ_EN      (1u <<  4) //!< Enable MH interrupt of the TX FIFO Queue 4 interrupt
+#define XCAN_IC_FE_MH_TX_FQ4_IRQ_DIS     (0u <<  4) //!< Disable MH interrupt of the TX FIFO Queue 4 interrupt
+#define XCAN_IC_FE_MH_TX_FQ5_IRQ_EN      (1u <<  5) //!< Enable MH interrupt of the TX FIFO Queue 5 interrupt
+#define XCAN_IC_FE_MH_TX_FQ5_IRQ_DIS     (0u <<  5) //!< Disable MH interrupt of the TX FIFO Queue 5 interrupt
+#define XCAN_IC_FE_MH_TX_FQ6_IRQ_EN      (1u <<  6) //!< Enable MH interrupt of the TX FIFO Queue 6 interrupt
+#define XCAN_IC_FE_MH_TX_FQ6_IRQ_DIS     (0u <<  6) //!< Disable MH interrupt of the TX FIFO Queue 6 interrupt
+#define XCAN_IC_FE_MH_TX_FQ7_IRQ_EN      (1u <<  7) //!< Enable MH interrupt of the TX FIFO Queue 7 interrupt
+#define XCAN_IC_FE_MH_TX_FQ7_IRQ_DIS     (0u <<  7) //!< Disable MH interrupt of the TX FIFO Queue 7 interrupt
+#define XCAN_IC_FE_MH_RX_FQ0_IRQ_EN      (1u <<  8) //!< Enable MH interrupt of the RX FIFO Queue 0 interrupt
+#define XCAN_IC_FE_MH_RX_FQ0_IRQ_DIS     (0u <<  8) //!< Disable MH interrupt of the RX FIFO Queue 0 interrupt
+#define XCAN_IC_FE_MH_RX_FQ1_IRQ_EN      (1u <<  9) //!< Enable MH interrupt of the RX FIFO Queue 1 interrupt
+#define XCAN_IC_FE_MH_RX_FQ1_IRQ_DIS     (0u <<  9) //!< Disable MH interrupt of the RX FIFO Queue 1 interrupt
+#define XCAN_IC_FE_MH_RX_FQ2_IRQ_EN      (1u << 10) //!< Enable MH interrupt of the RX FIFO Queue 2 interrupt
+#define XCAN_IC_FE_MH_RX_FQ2_IRQ_DIS     (0u << 10) //!< Disable MH interrupt of the RX FIFO Queue 2 interrupt
+#define XCAN_IC_FE_MH_RX_FQ3_IRQ_EN      (1u << 11) //!< Enable MH interrupt of the RX FIFO Queue 3 interrupt
+#define XCAN_IC_FE_MH_RX_FQ3_IRQ_DIS     (0u << 11) //!< Disable MH interrupt of the RX FIFO Queue 3 interrupt
+#define XCAN_IC_FE_MH_RX_FQ4_IRQ_EN      (1u << 12) //!< Enable MH interrupt of the RX FIFO Queue 4 interrupt
+#define XCAN_IC_FE_MH_RX_FQ4_IRQ_DIS     (0u << 12) //!< Disable MH interrupt of the RX FIFO Queue 4 interrupt
+#define XCAN_IC_FE_MH_RX_FQ5_IRQ_EN      (1u << 13) //!< Enable MH interrupt of the RX FIFO Queue 5 interrupt
+#define XCAN_IC_FE_MH_RX_FQ5_IRQ_DIS     (0u << 13) //!< Disable MH interrupt of the RX FIFO Queue 5 interrupt
+#define XCAN_IC_FE_MH_RX_FQ6_IRQ_EN      (1u << 14) //!< Enable MH interrupt of the RX FIFO Queue 6 interrupt
+#define XCAN_IC_FE_MH_RX_FQ6_IRQ_DIS     (0u << 14) //!< Disable MH interrupt of the RX FIFO Queue 6 interrupt
+#define XCAN_IC_FE_MH_RX_FQ7_IRQ_EN      (1u << 15) //!< Enable MH interrupt of the RX FIFO Queue 7 interrupt
+#define XCAN_IC_FE_MH_RX_FQ7_IRQ_DIS     (0u << 15) //!< Disable MH interrupt of the RX FIFO Queue 7 interrupt
+#define XCAN_IC_FE_MH_TX_PQ_IRQ_EN       (1u << 16) //!< Enable Interrupt of TX Priority Queue interrupt
+#define XCAN_IC_FE_MH_TX_PQ_IRQ_DIS      (0u << 16) //!< Disable Interrupt of TX Priority Queue interrupt
+#define XCAN_IC_FE_MH_STOP_IRQ_EN        (1u << 17) //!< Enable The interrupt is triggered when the PRT is stopped interrupt
+#define XCAN_IC_FE_MH_STOP_IRQ_DIS       (0u << 17) //!< Disable The interrupt is triggered when the PRT is stopped interrupt
+#define XCAN_IC_FE_MH_RX_FILTER_IRQ_EN   (1u << 18) //!< Enable In order to track RX filtering results, an interrupt can be triggered when the comparison between a RX message header and a defined filter is successful interrupt
+#define XCAN_IC_FE_MH_RX_FILTER_IRQ_DIS  (0u << 18) //!< Disable In order to track RX filtering results, an interrupt can be triggered when the comparison between a RX message header and a defined filter is successful interrupt
+#define XCAN_IC_FE_MH_TX_FILTER_IRQ_EN   (1u << 19) //!< Enable The interrupt is triggered when the TX filter is enabled, and a TX message is rejected interrupt
+#define XCAN_IC_FE_MH_TX_FILTER_IRQ_DIS  (0u << 19) //!< Disable The interrupt is triggered when the TX filter is enabled, and a TX message is rejected interrupt
+#define XCAN_IC_FE_MH_TX_ABORT_IRQ_EN    (1u << 20) //!< Enable This interrupt line is triggered when the MH needs to abort a TX message being sent to the PRT interrupt
+#define XCAN_IC_FE_MH_TX_ABORT_IRQ_DIS   (0u << 20) //!< Disable This interrupt line is triggered when the MH needs to abort a TX message being sent to the PRT interrupt
+#define XCAN_IC_FE_MH_RX_ABORT_IRQ_EN    (1u << 21) //!< Enable This interrupt line is triggered when the MH needs to abort a RX message being received from PRT interrupt
+#define XCAN_IC_FE_MH_RX_ABORT_IRQ_DIS   (0u << 21) //!< Disable This interrupt line is triggered when the MH needs to abort a RX message being received from PRT interrupt
+#define XCAN_IC_FE_MH_STATS_IRQ_EN       (1u << 22) //!< Enable One of the RX/TX counters have reached the threshold interrupt
+#define XCAN_IC_FE_MH_STATS_IRQ_DIS      (0u << 22) //!< Disable One of the RX/TX counters have reached the threshold interrupt
+
+#define XCAN_IC_FE_PRT_E_ACTIVE_EN       (1u << 24) //!< Enable PRT switched from Error-Passive to Error-Active state interrupt
+#define XCAN_IC_FE_PRT_E_ACTIVE_DIS      (0u << 24) //!< Disable PRT switched from Error-Passive to Error-Active state interrupt
+#define XCAN_IC_FE_PRT_BUS_ON_EN         (1u << 25) //!< Enable PRT started CAN communication, after start or end of BusOff interrupt
+#define XCAN_IC_FE_PRT_BUS_ON_DIS        (0u << 25) //!< Disable PRT started CAN communication, after start or end of BusOff interrupt
+#define XCAN_IC_FE_PRT_TX_EVT_EN         (1u << 26) //!< Enable PRT transmitted a valid CAN message interrupt
+#define XCAN_IC_FE_PRT_TX_EVT_DIS        (0u << 26) //!< Disable PRT transmitted a valid CAN message interrupt
+#define XCAN_IC_FE_PRT_RX_EVT_EN         (1u << 27) //!< Enable PRT received a valid CAN message interrupt
+#define XCAN_IC_FE_PRT_RX_EVT_DIS        (0u << 27) //!< Disable PRT received a valid CAN message interrupt
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Error raw event enable register (Read/Write, Offset: 0xA24, Initial value: 0x00000000)
+ * Any bit in the ERR_ENA register enables the corresponding bit in the ERR_RAW to trigger the interrupt line ERR_INT.
+ * The interrupt line gets active high, when at least one RAW/ENA pair is 1, e.g. ERR_RAW.MH_TX_FQ_IRQ = ERR_ENA.MH_TX_FQ_IRQ = 1
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_EE_Register
+{
+  uint32_t ERR_ENA;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MH_RX_FILTER_ERR: 1; //!<  0    - MH RX filtering has not finished in time, i.e. current RX filtering has not been completed before next incoming RX message requires RX filtering: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_MEM_SFTY_ERR : 1; /*!<  1    - MH detected error in L_MEM error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           This interrupt is triggered when either the MEM_SFTY_CE or MEM_SFTY_UE input signal is active.
+                                   *           The Message Handler provides the information, which signal was active, see flags MH:SFTY_INT_STS.MEM_SFTY_CE and MH:SFTY_INT_STS.MEM_SFTY_UE
+                                   */
+    uint32_t MH_REG_CRC_ERR  : 1; //!<  2    - MH detected CRC error at the register bank. See also description of REG_CRC_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DESC_ERR     : 1; /*!<  3    - CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           A status flag can define if it is on TX or RX path, see SFTY_INT_STS register
+                                   */
+    uint32_t MH_AP_PARITY_ERR: 1; /*!<  4    - MH detected parity error at address pointers, used to manage the MH Queues (RX/TX FIFO Queues and TX Priority Queues) error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           See also description of AP_PARITY_ERR in MH section
+                                   */
+    uint32_t MH_DP_PARITY_ERR: 1; /*!<  5    - MH detected parity error at RX message data error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           (received from PRT and written to AXI system bus) respective parity error detected at TX message data (read from AXI system bus and transferred to PRT).
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX message or TX message was affected
+                                   */
+    uint32_t MH_DP_SEQ_ERR   : 1; /*!<  6    - MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX or TX interface was affected
+                                   */
+    uint32_t MH_DP_DO_ERR    : 1; //!<  7    - MH detected a data overflow at RX buffer, see description of DP_DO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DP_TO_ERR    : 1; //!<  8    - MH detected timeout at TX_MSG interface located between MH and PRT, see description of DP_TO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DMA_TO_ERR   : 1; //!<  9    - MH detected timeout at DMA_AXI interface, see description of DMA_TO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DMA_CH_ERR   : 1; //!< 10    - MH detected routing error, i.e. data received or sent are not properly routed to or from DMA channel interfaces, see description of DMA_CH_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RD_RESP_ERR  : 1; //!< 11    - MH detected a bus error caused by a read access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_WR_RESP_ERR  : 1; //!< 12    - MH detected a bus error caused by a write access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_MEM_TO_ERR   : 1; //!< 13    - MH detected timeout at local memory interface MEM_AXI, see description of MEM_TO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 2; //!< 14-15
+    uint32_t PRT_ABORTED     : 1; //!< 16    - PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_USOS        : 1; //!< 17    - PRT detected unexpected Start of Sequence during TX_MSG sequence: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_TX_DU       : 1; //!< 18    - PRT detected underrun condition at TX_MSG sequence: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_RX_DO       : 1; //!< 19    - PRT detected overflow condition at RX_MSG sequence: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_IFF_RQ      : 1; //!< 20    - PRT detected invalid Frame Format at TX_MSG: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_BUS_ERR     : 1; //!< 21    - PRT detected error on the CAN Bus: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_E_PASSIVE   : 1; //!< 22    - PRT switched from Error-Active to Error-Passive state: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_BUS_OFF     : 1; //!< 23    - PRT entered Bus_Off state: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 4; //!< 24-27
+    uint32_t TOP_MUX_TO_ERR  : 1; //!< 28    - Timeout at top-level multiplexer error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 3; //!< 29-31
+  } Bits;
+} XCAN_IC_EE_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_EE_Register, 4);
+
+#define XCAN_IC_EE_MH_RX_FILTER_ERR_EN   (1u <<  0) //!< Enable MH RX filtering has not finished in time error interrupt
+#define XCAN_IC_EE_MH_RX_FILTER_ERR_DIS  (0u <<  0) //!< Disable MH RX filtering has not finished in time error interrupt
+#define XCAN_IC_EE_MH_MEM_SFTY_ERR_EN    (1u <<  1) //!< Enable MH detected error in L_MEM error interrupt
+#define XCAN_IC_EE_MH_MEM_SFTY_ERR_DIS   (0u <<  1) //!< Disable MH detected error in L_MEM error interrupt
+#define XCAN_IC_EE_MH_REG_CRC_ERR_EN     (1u <<  2) //!< Enable MH detected CRC error at the register bank error interrupt
+#define XCAN_IC_EE_MH_REG_CRC_ERR_DIS    (0u <<  2) //!< Disable MH detected CRC error at the register bank error interrupt
+#define XCAN_IC_EE_MH_DESC_ERR_EN        (1u <<  3) //!< Enable CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt
+#define XCAN_IC_EE_MH_DESC_ERR_DIS       (0u <<  3) //!< Disable CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt
+#define XCAN_IC_EE_MH_AP_PARITY_ERR_EN   (1u <<  4) //!< Enable MH detected parity error at address pointers error interrupt
+#define XCAN_IC_EE_MH_AP_PARITY_ERR_DIS  (0u <<  4) //!< Disable MH detected parity error at address pointers error interrupt
+#define XCAN_IC_EE_MH_DP_PARITY_ERR_EN   (1u <<  5) //!< Enable MH detected parity error at RX message data error interrupt
+#define XCAN_IC_EE_MH_DP_PARITY_ERR_DIS  (0u <<  5) //!< Disable MH detected parity error at RX message data error interrupt
+#define XCAN_IC_EE_MH_DP_SEQ_ERR_EN      (1u <<  6) //!< Enable MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt
+#define XCAN_IC_EE_MH_DP_SEQ_ERR_DIS     (0u <<  6) //!< Disable MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt
+#define XCAN_IC_EE_MH_DP_DO_ERR_EN       (1u <<  7) //!< Enable MH detected a data overflow at RX buffer error interrupt
+#define XCAN_IC_EE_MH_DP_DO_ERR_DIS      (0u <<  7) //!< Disable MH detected a data overflow at RX buffer error interrupt
+#define XCAN_IC_EE_MH_DP_TO_ERR_EN       (1u <<  8) //!< Enable MH detected timeout at TX_MSG interface located between MH and PRT error interrupt
+#define XCAN_IC_EE_MH_DP_TO_ERR_DIS      (0u <<  8) //!< Disable MH detected timeout at TX_MSG interface located between MH and PRT error interrupt
+#define XCAN_IC_EE_MH_DMA_TO_ERR_EN      (1u <<  9) //!< Enable MH detected timeout at DMA_AXI interface error interrupt
+#define XCAN_IC_EE_MH_DMA_TO_ERR_DIS     (0u <<  9) //!< Disable MH detected timeout at DMA_AXI interface error interrupt
+#define XCAN_IC_EE_MH_DMA_CH_ERR_EN      (1u << 10) //!< Enable MH detected routing error interrupt
+#define XCAN_IC_EE_MH_DMA_CH_ERR_DIS     (0u << 10) //!< Disable MH detected routing error interrupt
+#define XCAN_IC_EE_MH_RD_RESP_ERR_EN     (1u << 11) //!< Enable MH detected a bus error caused by a read access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_EE_MH_RD_RESP_ERR_DIS    (0u << 11) //!< Disable MH detected a bus error caused by a read access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_EE_MH_WR_RESP_ERR_EN     (1u << 12) //!< Enable MH detected a bus error caused by a write access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_EE_MH_WR_RESP_ERR_DIS    (0u << 12) //!< Disable MH detected a bus error caused by a write access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_EE_MH_MEM_TO_ERR_EN      (1u << 13) //!< Enable MH detected timeout at local memory interface MEM_AXI error interrupt
+#define XCAN_IC_EE_MH_MEM_TO_ERR_DIS     (0u << 13) //!< Disable MH detected timeout at local memory interface MEM_AXI error interrupt
+
+#define XCAN_IC_EE_PRT_ABORTED_EN        (1u << 16) //!< Enable PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT interrupt
+#define XCAN_IC_EE_PRT_ABORTED_DIS       (0u << 16) //!< Disable PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT interrupt
+#define XCAN_IC_EE_PRT_USOS_EN           (1u << 17) //!< Enable PRT detected unexpected Start of Sequence during TX_MSG sequence interrupt
+#define XCAN_IC_EE_PRT_USOS_DIS          (0u << 17) //!< Disable PRT detected unexpected Start of Sequence during TX_MSG sequence interrupt
+#define XCAN_IC_EE_PRT_TX_DU_EN          (1u << 18) //!< Enable PRT detected underrun condition at TX_MSG sequence interrupt
+#define XCAN_IC_EE_PRT_TX_DU_DIS         (0u << 18) //!< Disable PRT detected underrun condition at TX_MSG sequence interrupt
+#define XCAN_IC_EE_PRT_RX_DO_EN          (1u << 19) //!< Enable PRT detected overflow condition at RX_MSG sequence interrupt
+#define XCAN_IC_EE_PRT_RX_DO_DIS         (0u << 19) //!< Disable PRT detected overflow condition at RX_MSG sequence interrupt
+#define XCAN_IC_EE_PRT_IFF_RQ_EN         (1u << 20) //!< Enable PRT detected invalid Frame Format at TX_MSG interrupt
+#define XCAN_IC_EE_PRT_IFF_RQ_DIS        (0u << 20) //!< Disable PRT detected invalid Frame Format at TX_MSG interrupt
+#define XCAN_IC_EE_PRT_BUS_ERR_EN        (1u << 21) //!< Enable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_EE_PRT_BUS_ERR_DIS       (0u << 21) //!< Disable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_EE_PRT_E_PASSIVE_EN      (1u << 22) //!< Enable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_EE_PRT_E_PASSIVE_DIS     (0u << 22) //!< Disable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_EE_PRT_BUS_OFF_EN        (1u << 23) //!< Enable PRT entered Bus_Off state interrupt
+#define XCAN_IC_EE_PRT_BUS_OFF_DIS       (0u << 23) //!< Disable PRT entered Bus_Off state interrupt
+
+#define XCAN_IC_EE_TOP_MUX_TO_ERR_EN     (1u << 28) //!< Enable Timeout at top-level multiplexer error interrupt
+#define XCAN_IC_EE_TOP_MUX_TO_ERR_DIS    (0u << 28) //!< Disable Timeout at top-level multiplexer error interrupt
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Safety raw event enable register (Read/Write, Offset: 0xA28, Initial value: 0x00000000)
+ * Any bit in the SAFETY_ENA register enables the corresponding bit in the SAFETY_RAW to trigger the interrupt line SAFETY_INT.
+ * The interrupt line gets active high, when at least one RAW/ENA pair is 1, e.g. SAFETY_RAW.MH_TX_FQ_IRQ = SAFETY_ENA.MH_TX_FQ_IRQ = 1
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_SA_Register
+{
+  uint32_t SAFETY_ENA;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MH_RX_FILTER_ERR: 1; //!<  0    - MH RX filtering has not finished in time, i.e. current RX filtering has not been completed before next incoming RX message requires RX filtering: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_MEM_SFTY_ERR : 1; /*!<  1    - MH detected error in L_MEM error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           This interrupt is triggered when either the MEM_SFTY_CE or MEM_SFTY_UE input signal is active.
+                                   *           The Message Handler provides the information, which signal was active, see flags MH:SFTY_INT_STS.MEM_SFTY_CE and MH:SFTY_INT_STS.MEM_SFTY_UE
+                                   */
+    uint32_t MH_REG_CRC_ERR  : 1; //!<  2    - MH detected CRC error at the register bank. See also description of REG_CRC_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DESC_ERR     : 1; /*!<  3    - CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           A status flag can define if it is on TX or RX path, see SFTY_INT_STS register
+                                   */
+    uint32_t MH_AP_PARITY_ERR: 1; /*!<  4    - MH detected parity error at address pointers, used to manage the MH Queues (RX/TX FIFO Queues and TX Priority Queues) error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           See also description of AP_PARITY_ERR in MH section
+                                   */
+    uint32_t MH_DP_PARITY_ERR: 1; /*!<  5    - MH detected parity error at RX message data error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           (received from PRT and written to AXI system bus) respective parity error detected at TX message data (read from AXI system bus and transferred to PRT).
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX message or TX message was affected
+                                   */
+    uint32_t MH_DP_SEQ_ERR   : 1; /*!<  6    - MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+                                   *           Associated information provided by MH register ERR_INT_STS, e.g. if RX or TX interface was affected
+                                   */
+    uint32_t MH_DP_DO_ERR    : 1; //!<  7    - MH detected a data overflow at RX buffer, see description of DP_DO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DP_TO_ERR    : 1; //!<  8    - MH detected timeout at TX_MSG interface located between MH and PRT, see description of DP_TO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DMA_TO_ERR   : 1; //!<  9    - MH detected timeout at DMA_AXI interface, see description of DMA_TO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_DMA_CH_ERR   : 1; //!< 10    - MH detected routing error, i.e. data received or sent are not properly routed to or from DMA channel interfaces, see description of DMA_CH_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_RD_RESP_ERR  : 1; //!< 11    - MH detected a bus error caused by a read access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_WR_RESP_ERR  : 1; //!< 12    - MH detected a bus error caused by a write access to S_MEM respective L_MEM, see description of RESP_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t MH_MEM_TO_ERR   : 1; //!< 13    - MH detected timeout at local memory interface MEM_AXI, see description of MEM_TO_ERR in MH section error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 2; //!< 14-15
+    uint32_t PRT_ABORTED     : 1; //!< 16    - PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_USOS        : 1; //!< 17    - PRT detected unexpected Start of Sequence during TX_MSG sequence: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_TX_DU       : 1; //!< 18    - PRT detected underrun condition at TX_MSG sequence: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_RX_DO       : 1; //!< 19    - PRT detected overflow condition at RX_MSG sequence: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_IFF_RQ      : 1; //!< 20    - PRT detected invalid Frame Format at TX_MSG: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_BUS_ERR     : 1; //!< 21    - PRT detected error on the CAN Bus: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_E_PASSIVE   : 1; //!< 22    - PRT switched from Error-Active to Error-Passive state: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t PRT_BUS_OFF     : 1; //!< 23    - PRT entered Bus_Off state: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 4; //!< 24-27
+    uint32_t TOP_MUX_TO_ERR  : 1; //!< 28    - Timeout at top-level multiplexer error interrupt: '1' = Enable the interrupt ; '0' = Disable the interrupt
+    uint32_t                 : 3; //!< 29-31
+  } Bits;
+} XCAN_IC_SA_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_SA_Register, 4);
+
+#define XCAN_IC_SA_MH_RX_FILTER_ERR_EN   (1u <<  0) //!< Enable MH RX filtering has not finished in time error interrupt
+#define XCAN_IC_SA_MH_RX_FILTER_ERR_DIS  (0u <<  0) //!< Disable MH RX filtering has not finished in time error interrupt
+#define XCAN_IC_SA_MH_MEM_SFTY_ERR_EN    (1u <<  1) //!< Enable MH detected error in L_MEM error interrupt
+#define XCAN_IC_SA_MH_MEM_SFTY_ERR_DIS   (0u <<  1) //!< Disable MH detected error in L_MEM error interrupt
+#define XCAN_IC_SA_MH_REG_CRC_ERR_EN     (1u <<  2) //!< Enable MH detected CRC error at the register bank error interrupt
+#define XCAN_IC_SA_MH_REG_CRC_ERR_DIS    (0u <<  2) //!< Disable MH detected CRC error at the register bank error interrupt
+#define XCAN_IC_SA_MH_DESC_ERR_EN        (1u <<  3) //!< Enable CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt
+#define XCAN_IC_SA_MH_DESC_ERR_DIS       (0u <<  3) //!< Disable CRC error detected on RX/TX descriptor or RX/TX descriptor not expected detected error interrupt
+#define XCAN_IC_SA_MH_AP_PARITY_ERR_EN   (1u <<  4) //!< Enable MH detected parity error at address pointers error interrupt
+#define XCAN_IC_SA_MH_AP_PARITY_ERR_DIS  (0u <<  4) //!< Disable MH detected parity error at address pointers error interrupt
+#define XCAN_IC_SA_MH_DP_PARITY_ERR_EN   (1u <<  5) //!< Enable MH detected parity error at RX message data error interrupt
+#define XCAN_IC_SA_MH_DP_PARITY_ERR_DIS  (0u <<  5) //!< Disable MH detected parity error at RX message data error interrupt
+#define XCAN_IC_SA_MH_DP_SEQ_ERR_EN      (1u <<  6) //!< Enable MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt
+#define XCAN_IC_SA_MH_DP_SEQ_ERR_DIS     (0u <<  6) //!< Disable MH detected an incorrect sequence at RX_MSG respective TX_MSG interfaces located between MH and PRT error interrupt
+#define XCAN_IC_SA_MH_DP_DO_ERR_EN       (1u <<  7) //!< Enable MH detected a data overflow at RX buffer error interrupt
+#define XCAN_IC_SA_MH_DP_DO_ERR_DIS      (0u <<  7) //!< Disable MH detected a data overflow at RX buffer error interrupt
+#define XCAN_IC_SA_MH_DP_TO_ERR_EN       (1u <<  8) //!< Enable MH detected timeout at TX_MSG interface located between MH and PRT error interrupt
+#define XCAN_IC_SA_MH_DP_TO_ERR_DIS      (0u <<  8) //!< Disable MH detected timeout at TX_MSG interface located between MH and PRT error interrupt
+#define XCAN_IC_SA_MH_DMA_TO_ERR_EN      (1u <<  9) //!< Enable MH detected timeout at DMA_AXI interface error interrupt
+#define XCAN_IC_SA_MH_DMA_TO_ERR_DIS     (0u <<  9) //!< Disable MH detected timeout at DMA_AXI interface error interrupt
+#define XCAN_IC_SA_MH_DMA_CH_ERR_EN      (1u << 10) //!< Enable MH detected routing error interrupt
+#define XCAN_IC_SA_MH_DMA_CH_ERR_DIS     (0u << 10) //!< Disable MH detected routing error interrupt
+#define XCAN_IC_SA_MH_RD_RESP_ERR_EN     (1u << 11) //!< Enable MH detected a bus error caused by a read access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_SA_MH_RD_RESP_ERR_DIS    (0u << 11) //!< Disable MH detected a bus error caused by a read access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_SA_MH_WR_RESP_ERR_EN     (1u << 12) //!< Enable MH detected a bus error caused by a write access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_SA_MH_WR_RESP_ERR_DIS    (0u << 12) //!< Disable MH detected a bus error caused by a write access to S_MEM respective L_MEM error interrupt
+#define XCAN_IC_SA_MH_MEM_TO_ERR_EN      (1u << 13) //!< Enable MH detected timeout at local memory interface MEM_AXI error interrupt
+#define XCAN_IC_SA_MH_MEM_TO_ERR_DIS     (0u << 13) //!< Disable MH detected timeout at local memory interface MEM_AXI error interrupt
+
+#define XCAN_IC_SA_PRT_ABORTED_EN        (1u << 16) //!< Enable PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT interrupt
+#define XCAN_IC_SA_PRT_ABORTED_DIS       (0u << 16) //!< Disable PRT detected stop of TX_MSG sequence by TX_MSG_WUSER code ABORT interrupt
+#define XCAN_IC_SA_PRT_USOS_EN           (1u << 17) //!< Enable PRT detected unexpected Start of Sequence during TX_MSG sequence interrupt
+#define XCAN_IC_SA_PRT_USOS_DIS          (0u << 17) //!< Disable PRT detected unexpected Start of Sequence during TX_MSG sequence interrupt
+#define XCAN_IC_SA_PRT_TX_DU_EN          (1u << 18) //!< Enable PRT detected underrun condition at TX_MSG sequence interrupt
+#define XCAN_IC_SA_PRT_TX_DU_DIS         (0u << 18) //!< Disable PRT detected underrun condition at TX_MSG sequence interrupt
+#define XCAN_IC_SA_PRT_RX_DO_EN          (1u << 19) //!< Enable PRT detected overflow condition at RX_MSG sequence interrupt
+#define XCAN_IC_SA_PRT_RX_DO_DIS         (0u << 19) //!< Disable PRT detected overflow condition at RX_MSG sequence interrupt
+#define XCAN_IC_SA_PRT_IFF_RQ_EN         (1u << 20) //!< Enable PRT detected invalid Frame Format at TX_MSG interrupt
+#define XCAN_IC_SA_PRT_IFF_RQ_DIS        (0u << 20) //!< Disable PRT detected invalid Frame Format at TX_MSG interrupt
+#define XCAN_IC_SA_PRT_BUS_ERR_EN        (1u << 21) //!< Enable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_SA_PRT_BUS_ERR_DIS       (0u << 21) //!< Disable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_SA_PRT_E_PASSIVE_EN      (1u << 22) //!< Enable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_SA_PRT_E_PASSIVE_DIS     (0u << 22) //!< Disable PRT detected error on the CAN Bus interrupt
+#define XCAN_IC_SA_PRT_BUS_OFF_EN        (1u << 23) //!< Enable PRT entered Bus_Off state interrupt
+#define XCAN_IC_SA_PRT_BUS_OFF_DIS       (0u << 23) //!< Disable PRT entered Bus_Off state interrupt
+
+#define XCAN_IC_SA_TOP_MUX_TO_ERR_EN     (1u << 28) //!< Enable Timeout at top-level multiplexer error interrupt
+#define XCAN_IC_SA_TOP_MUX_TO_ERR_DIS    (0u << 28) //!< Disable Timeout at top-level multiplexer error interrupt
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN IRC configuration register (Read, Offset: 0xA30, Initial value: 0x00000007)
+ * This register shows the hardware configuration of the IRC concerning the capturing mode of the event inputs.
+ * The IP internal events signals coming from the MH and the PRT require an 'edge sensitive' capturing.
+ * That is why the value of this register is 0x7 and cannot be changed
+ */
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_CM_Register
+{
+  uint32_t CM;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t FUNC  :  1; //!< 0    - Capturing mode of FUNC_RAW register: '1' = Edge sensitive ; '0' = Level sensitive
+    uint32_t ERR   :  1; //!< 1    - Capturing mode of ERR RAW register: '1' = Edge sensitive ; '0' = Level sensitive
+    uint32_t SAFETY:  1; //!< 2    - Capturing mode of SAFETY RAW register: '1' = Edge sensitive ; '0' = Level sensitive
+    uint32_t       : 29; //!< 3-31
+  } Bits;
+} XCAN_IC_CM_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_CM_Register, 4);
+
+#define XCAN_IC_CM_FUNC_EDGE_SENSITIVE     (1u << 0) //!< Capturing mode of FUNC_RAW is Edge sensitive
+#define XCAN_IC_CM_FUNC_LEVEL_SENSITIVE    (0u << 0) //!< Capturing mode of FUNC_RAW is Level sensitive
+#define XCAN_IC_CM_ERR_EDGE_SENSITIVE      (1u << 0) //!< Capturing mode of ERR RAW register is Edge sensitive
+#define XCAN_IC_CM_ERR_LEVEL_SENSITIVE     (0u << 0) //!< Capturing mode of ERR RAW register is Level sensitive
+#define XCAN_IC_CM_SAFETY_EDGE_SENSITIVE   (1u << 0) //!< Capturing mode of SAFETY RAW is Edge sensitive
+#define XCAN_IC_CM_SAFETY_LEVEL_SENSITIVE  (0u << 0) //!< Capturing mode of SAFETY RAW is Level sensitive
+
+//-----------------------------------------------------------------------------
+
+//! XCAN Hardware Debug Port control register (Read/Write, Offset: 0xA40, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __MCAN_PACKED__ XCAN_IC_HDP_Register
+{
+  uint32_t HDP;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t HDP_SEL:  1; //!< 0    - Select the driver of the Hardware Debug Port: '1' = Protocol Controller ; '0' = Message Handler
+    uint32_t        : 31; //!< 2-31
+  } Bits;
+} XCAN_IC_HDP_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_IC_HDP_Register, 4);
+
+#define XCAN_IC_HDP_PROTOCOL_CONTROLLER  (1u << 0) //!< Select the Protocol Controller for the Hardware Debug Port
+#define XCAN_IC_HDP_MESSAGE_HANDLER      (0u << 0) //!< Select the Message Handler for the Hardware Debug Port
+
+//-----------------------------------------------------------------------------
 
 
 
