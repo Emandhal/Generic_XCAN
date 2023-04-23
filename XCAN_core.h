@@ -936,6 +936,1015 @@ typedef enum
 // XCAN Message Handler Registers
 //********************************************************************************************************************
 
+/*! XCAN Release Identification Register (Read-Only, Offset: 0x000, Initial value: 0x05600000)
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_VERSION_Register
+{
+  uint32_t VERSION;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t DAY    : 8; /*!<  0- 7 - Define the day of the release using a binary coded decimal representation (1 being the first day of the month and so forth).
+                          *           This reset value is defined by the generic parameter DESIGN_TIME_STAMP_G[7:0]. If the generic parameter DESIGN_TIME_STAMP_G is not set, the default value is the one defined here
+                          */
+    uint32_t MON    : 8; /*!<  8-15 - Define the month of the release using a binary coded decimal representation (1 being January and so forth).
+                          *           This reset value is defined by the generic parameter DESIGN_TIME_STAMP_G[15:8]. If the generic parameter DESIGN_TIME_STAMP_G is not set, the default value is the one defined here
+                          */
+    uint32_t YEAR   : 4; /*!< 16-19 - Define the year of the release using a binary coded decimal representation (0 being 2020 and so forth…).
+                          *           This reset value is defined by the generic parameter DESIGN_TIME_STAMP_G[19:16]. If the generic parameter DESIGN_TIME_STAMP_G is not set, the default value is the one defined here
+                          */
+    uint32_t SUBSTEP: 4; //!< 20-23 - Sub-Step value according to Step
+    uint32_t STEP   : 4; //!< 24-27 - Step value according to Release
+    uint32_t REL    : 4; //!< 28-31 - Release value, used to identify the main release of the X_CAN
+  } Bits;
+} XCAN_VERSION_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_VERSION_Register, 4);
+
+#define XCAN_VERSION_DAY_Pos             0
+#define XCAN_VERSION_DAY_Mask            (0xFFu << XCAN_VERSION_DAY_Pos)
+#define XCAN_VERSION_DAY_GET(value)      XCAN_DCB8_TO_DECIMAL(((uint32_t)(value) & XCAN_VERSION_DAY_Mask) >> XCAN_VERSION_DAY_Pos) //!< Get the day of the release
+#define XCAN_VERSION_MON_Pos             8
+#define XCAN_VERSION_MON_Mask            (0xFFu << XCAN_VERSION_MON_Pos)
+#define XCAN_VERSION_MON_GET(value)      XCAN_DCB8_TO_DECIMAL(((uint32_t)(value) & XCAN_VERSION_MON_Mask) >> XCAN_VERSION_MON_Pos) //!< Get the month of the release
+#define XCAN_VERSION_YEAR_Pos            16
+#define XCAN_VERSION_YEAR_Mask           (0xFu << XCAN_VERSION_YEAR_Pos)
+#define XCAN_VERSION_YEAR_GET(value)     XCAN_DCB8_TO_DECIMAL(((uint32_t)(value) & XCAN_VERSION_YEAR_Mask) >> XCAN_VERSION_YEAR_Pos) //!< Get the year of the release
+#define XCAN_VERSION_SUBSTEP_Pos         20
+#define XCAN_VERSION_SUBSTEP_Mask        (0xFu << XCAN_VERSION_SUBSTEP_Pos)
+#define XCAN_VERSION_SUBSTEP_GET(value)  XCAN_DCB8_TO_DECIMAL(((uint32_t)(value) & XCAN_VERSION_SUBSTEP_Mask) >> XCAN_VERSION_SUBSTEP_Pos) //!< Get sub-step value according to Step
+#define XCAN_VERSION_STEP_Pos            24
+#define XCAN_VERSION_STEP_Mask           (0xFu << XCAN_VERSION_STEP_Pos)
+#define XCAN_VERSION_STEP_GET(value)     XCAN_DCB8_TO_DECIMAL(((uint32_t)(value) & XCAN_VERSION_STEP_Mask) >> XCAN_VERSION_STEP_Pos) //!< Get step value according to Release
+#define XCAN_VERSION_REL_Pos             28
+#define XCAN_VERSION_REL_Mask            (0xFu << XCAN_VERSION_REL_Pos)
+#define XCAN_VERSION_REL_GET(value)      XCAN_DCB8_TO_DECIMAL(((uint32_t)(value) & XCAN_VERSION_REL_Mask) >> XCAN_VERSION_REL_Pos) //!< Get release value
+
+//-----------------------------------------------------------------------------
+
+//! XCAN Message Handler Control register (Read-Only, Offset: 0x004, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_MH_CTRL_Register
+{
+  uint32_t MH_CTRL;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t START:  1; /*!< 0    - Before starting any RX/TX FIFO Queues or TX FIFO Queue slots the MH must write 1 to this bit prior launching the PRT.
+                         *          At initial start, as long as the PRT is not started, this bit can be set back to 0. When set to 1, the global configuration registers are write-protected.
+                         *          As soon as the PRT is started, this bit cannot be set to 0. This bit can only be set to back to 0 if MH_STS.ENABLE = 0 and MH_STS.BUSY =0.
+                         *          For more details on starting/stopping or restarting the MH, refer to the Programming Guidelines chapter
+                         */
+    uint32_t      : 31; //!< 1-31
+  } Bits;
+} XCAN_MH_CTRL_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_MH_CTRL_Register, 4);
+
+#define XCAN_MH_CTRL_START  (1u << 0) //!< Start XCAN
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Message Handler Configuration register (Read/Write, Offset: 0x008, Initial value: 0x00000700)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_MH_CFG_Register
+{
+  uint32_t MH_CFG;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t RX_CONT_DC :  1; /*!<  0    - When set to 1, the Continuous mode is active. This mode provides the option to have a linear and continuous memory organization of the RX message data.
+                               *           Only one RX descriptor is used by RX message data and one single data container is required.
+                               *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                               */
+    uint32_t            :  7; //!<  1- 7
+    uint32_t MAX_RETRANS:  3; /*!<  8-10 - Maximum number of TX message re-transmissions. Different configurations are possible: 0 -> no retransmission; 1 to 6 -> 1 to 6 retransmissions;
+                               *           7 -> unlimited retransmissions; This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                               */
+    uint32_t            :  5; //!< 11-15
+    uint32_t INST_NUM   :  3; /*!< 16-18 - In case that a cluster of X_CAN is defined, this bit field is used as a unique identifier per instance.
+                               *           This identifier is used by the MH to determine if the TX/RX descriptors are fetched by the right instance, see RX/TX description.
+                               *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                               */
+    uint32_t            : 13; //!< 19-31
+  } Bits;
+} XCAN_MH_CFG_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_MH_CFG_Register, 4);
+
+#define XCAN_MH_CFG_CONTINUOUS_MODE_ACTIVE  (1u << 0) //!< Continuous mode is active
+
+//! Retransmissions enumerator
+typedef enum
+{
+  XCAN_NO_RETRANSMISSION        = 0, //!< No retransmission
+  XCAN_1_RETRANSMISSION         = 1, //!< 1 retransmission
+  XCAN_2_RETRANSMISSIONS        = 2, //!< 2 retransmissions
+  XCAN_3_RETRANSMISSIONS        = 3, //!< 3 retransmissions
+  XCAN_4_RETRANSMISSIONS        = 4, //!< 4 retransmissions
+  XCAN_5_RETRANSMISSIONS        = 5, //!< 5 retransmissions
+  XCAN_6_RETRANSMISSIONS        = 6, //!< 6 retransmissions
+  XCAN_UNLIMITED_RETRANSMISSION = 7, //!< Unlimited retransmissions
+} eXCAN_Retransmission;
+
+#define XCAN_MH_CFG_MAX_RETRANS_Pos         8
+#define XCAN_MH_CFG_MAX_RETRANS_Mask        (0x7u << XCAN_MH_CFG_MAX_RETRANS_Pos)
+#define XCAN_MH_CFG_MAX_RETRANS_GET(value)  (((uint32_t)(value) & XCAN_MH_CFG_MAX_RETRANS_Mask) >> XCAN_MH_CFG_MAX_RETRANS_Pos) //!< Get maximum number of TX message re-transmissions
+#define XCAN_MH_CFG_MAX_RETRANS_SET(value)  (((uint32_t)(value) << XCAN_MH_CFG_MAX_RETRANS_Pos) & XCAN_MH_CFG_MAX_RETRANS_Mask) //!< Set maximum number of TX message re-transmissions
+#define XCAN_MH_CFG_INST_NUM_Pos            16
+#define XCAN_MH_CFG_INST_NUM_Mask           (0x7u << XCAN_MH_CFG_INST_NUM_Pos)
+#define XCAN_MH_CFG_INST_NUM_GET(value)     (((uint32_t)(value) & XCAN_MH_CFG_INST_NUM_Mask) >> XCAN_MH_CFG_INST_NUM_Pos) //!< Get unique identifier per instance
+#define XCAN_MH_CFG_INST_NUM_SET(value)     (((uint32_t)(value) << XCAN_MH_CFG_INST_NUM_Pos) & XCAN_MH_CFG_INST_NUM_Mask) //!< Set unique identifier per instance
+
+//-----------------------------------------------------------------------------
+
+//! XCAN Message Handler Status register (Read-Only, Offset: 0x00C, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_MH_STS_Register
+{
+  uint32_t MH_STS;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t BUSY        :  1; //!< 0    - This bit is the general busy flag, it is an ORED( RX/TX FIFO Queues and TX Priority Queue slots busy flags)
+    uint32_t             :  3; //!< 1- 3
+    uint32_t ENABLE      :  1; //!< 4    - Value of the ENABLE signal driven by the PRT. The PRT signalizes via ENABLE whether it is active (ENABLE = 1) and requires message handling or not (ENABLE = 0)
+    uint32_t             :  3; //!< 5- 7
+    uint32_t CLOCK_ACTIVE:  1; //!< 8    - Status of MH core clock: 0 = clock off, 1 = clock on
+    uint32_t             : 23; //!< 9-31
+  } Bits;
+} XCAN_MH_STS_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_MH_STS_Register, 4);
+
+#define XCAN_MH_STS_BUSY          (1u << 0) //!< Is busy
+#define XCAN_MH_STS_ENABLE        (1u << 4) //!< Is enable
+#define XCAN_MH_STS_CLOCK_ACTIVE  (1u << 8) //!< MH core clock is ON
+#define XCAN_MH_STS_CLOCK_OFF     (0u << 8) //!< MH core clock is OFF
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Message Handler Safety Configuration register (Read/Write, Offset: 0x010, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_MH_SFTY_CFG_Register
+{
+  uint32_t MH_SFTY_CFG;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t DMA_TO_VAL:  8; /*!<  0- 7 - This value is used by the watchdog timer for the DMA_AXI interface and defines the maximum number of timer ticks until a read or write access has to be completed.
+                              *           This value must be configured according to the maximum system latency, expected on the DMA_AXI interface.
+                              *           If this value is set to 0 and MH_SFTY_CTRL.DMA_TO_EN = 1 then the DMA_TO_ERR interrupt is triggered right away when accessing the S_MEM.
+                              *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                              */
+    uint32_t MEM_TO_VAL:  8; /*!<  8-15 - This value is used by the watchdog timer for the MEM_AXI interface and defines the maximum number of timer ticks until a read or write access has to be completed.
+                              *           This value must be configured to the expected maximum latency on the MEM_AXI interface.
+                              *           If this value is set to 0 and MH_SFTY_CTRL.MEM_TO_EN = 1 then the MEM_TO_ERR interrupt is triggered right away when accessing the L_MEM.
+                              *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                              */
+    uint32_t PRT_TO_VAL: 14; /*!< 16-29 - This value is used by the watchdog timers for the internal RX_MSG and TX_MSG interfaces.
+                              *           It defines the maximum number of timer ticks until a message has to be transferred from PRT to MH respective MH to PRT.
+                              *           The value must be configured according to the CAN frame which requires the longest time to be transported on the CAN bus.
+                              *           If this value is set to 0 and MH_SFTY_CTRL.PRT_TO_EN = 1 then the DP_TO_ERR interrupt is triggered right away at the beginning of a RX message or when starting a TX message.
+                              *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                              */
+    uint32_t PRESCALER :  2; /*!< 30-31 - Prescaler used to generate the timer ticks for the watchdogs. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+                              *           According to the value a different clock ratio can be selected
+                              */
+  } Bits;
+} XCAN_MH_SFTY_CFG_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_MH_SFTY_CFG_Register, 4);
+
+#define XCAN_MH_SFTY_CFG_DMA_TO_VAL_Pos         0
+#define XCAN_MH_SFTY_CFG_DMA_TO_VAL_Mask        (0xFFu << XCAN_MH_SFTY_CFG_DMA_TO_VAL_Pos)
+#define XCAN_MH_SFTY_CFG_DMA_TO_VAL_GET(value)  (((uint32_t)(value) & XCAN_MH_SFTY_CFG_DMA_TO_VAL_Mask) >> XCAN_MH_SFTY_CFG_DMA_TO_VAL_Pos) //!< Get value used by the watchdog timer for the DMA_AXI interface and defines the maximum number of timer ticks until a read or write access has to be completed
+#define XCAN_MH_SFTY_CFG_DMA_TO_VAL_SET(value)  (((uint32_t)(value) << XCAN_MH_SFTY_CFG_DMA_TO_VAL_Pos) & XCAN_MH_SFTY_CFG_DMA_TO_VAL_Mask) //!< Set value used by the watchdog timer for the DMA_AXI interface and defines the maximum number of timer ticks until a read or write access has to be completed
+#define XCAN_MH_SFTY_CFG_MEM_TO_VAL_Pos         8
+#define XCAN_MH_SFTY_CFG_MEM_TO_VAL_Mask        (0xFFu << XCAN_MH_SFTY_CFG_MEM_TO_VAL_Pos)
+#define XCAN_MH_SFTY_CFG_MEM_TO_VAL_GET(value)  (((uint32_t)(value) & XCAN_MH_SFTY_CFG_MEM_TO_VAL_Mask) >> XCAN_MH_SFTY_CFG_MEM_TO_VAL_Pos) //!< Get value used by the watchdog timer for the MEM_AXI interface and defines the maximum number of timer ticks until a read or write access has to be completed
+#define XCAN_MH_SFTY_CFG_MEM_TO_VAL_SET(value)  (((uint32_t)(value) << XCAN_MH_SFTY_CFG_MEM_TO_VAL_Pos) & XCAN_MH_SFTY_CFG_MEM_TO_VAL_Mask) //!< Set value used by the watchdog timer for the MEM_AXI interface and defines the maximum number of timer ticks until a read or write access has to be completed
+#define XCAN_MH_SFTY_CFG_PRT_TO_VAL_Pos         16
+#define XCAN_MH_SFTY_CFG_PRT_TO_VAL_Mask        (0x3FFFu << XCAN_MH_SFTY_CFG_PRT_TO_VAL_Pos)
+#define XCAN_MH_SFTY_CFG_PRT_TO_VAL_GET(value)  (((uint32_t)(value) & XCAN_MH_SFTY_CFG_PRT_TO_VAL_Mask) >> XCAN_MH_SFTY_CFG_PRT_TO_VAL_Pos) //!< Get value used by the watchdog timers for the internal RX_MSG and TX_MSG interfaces
+#define XCAN_MH_SFTY_CFG_PRT_TO_VAL_SET(value)  (((uint32_t)(value) << XCAN_MH_SFTY_CFG_PRT_TO_VAL_Pos) & XCAN_MH_SFTY_CFG_PRT_TO_VAL_Mask) //!< Set value used by the watchdog timers for the internal RX_MSG and TX_MSG interfaces
+
+//! Prescaler enumerator
+typedef enum
+{
+  XCAN_PRESCALER_32  = 0, //!< Clk divided by 32
+  XCAN_PRESCALER_64  = 1, //!< Clk divided by 64
+  XCAN_PRESCALER_128 = 2, //!< Clk divided by 128
+  XCAN_PRESCALER_512 = 3, //!< Clk divided by 512
+} eXCAN_Prescaler;
+
+#define XCAN_MH_SFTY_CFG_PRESCALER_Pos         30
+#define XCAN_MH_SFTY_CFG_PRESCALER_Mask        (3 << XCAN_MH_SFTY_CFG_PRESCALER_Pos)
+#define XCAN_MH_SFTY_CFG_PRESCALER_GET(value)  (eXCAN_Prescaler)((uint32_t)(value) & XCAN_MH_SFTY_CFG_PRESCALER_Mask) >> XCAN_MH_SFTY_CFG_PRESCALER_Pos) //!< Get prescaler used to generate the timer ticks for the watchdogs
+#define XCAN_MH_SFTY_CFG_PRESCALER_SET(value)  (((uint32_t)(value) << XCAN_MH_SFTY_CFG_PRESCALER_Pos) & XCAN_MH_SFTY_CFG_PRESCALER_Mask) //!< Set prescaler used to generate the timer ticks for the watchdogs
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN Message Handler Safety Control register (Read/Write, Offset: 0x014, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FILTER_MEM_ADD_Register
+{
+  uint32_t RX_FILTER_MEM_ADD;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t TX_DESC_CRC_EN :  1; //!<  0    - When set to 1, the CRC check for the TX descriptors is enabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t RX_DESC_CRC_EN :  1; //!<  1    - When set to 1, the CRC check for the RX descriptors is enabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t MEM_PROT_EN    :  1; //!<  2    - When set to 1, the sfty_err signal from the local memory interface is checked. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t RX_DP_PARITY_EN:  1; //!<  3    - When set to 1, the data path parity check performed on the RX path is enabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t TX_DP_PARITY_EN:  1; //!<  4    - When set to 1, the data path parity check performed on the TX path is enabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t TX_AP_PARITY_EN:  1; //!<  5    - When set to 1, the address pointer parity check on the TX path is enabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t RX_AP_PARITY_EN:  1; //!<  6    - When set to 1, the address pointer parity check on the RX path is enabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t DMA_CH_CHK_EN  :  1; //!<  7    - When set to 1, the read/write DMA channels routing is checked. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t DMA_TO_EN      :  1; //!<  8    - When set to 1, the watchdog for the DMA_AXI interface is enabled, otherwise disabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t MEM_TO_EN      :  1; //!<  9    - When set to 1, the watchdog for the MEM_AXI interface is enabled, otherwise disabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t PRT_TO_EN      :  1; //!< 10    - When set to 1, the watchdogs for the internal RX_MSG and TX_MSG interfaces are enabled, otherwise disabled. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+    uint32_t                : 21; //!< 16-31
+  } Bits;
+} XCAN_RX_FILTER_MEM_ADD_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FILTER_MEM_ADD_Register, 4);
+
+#define XCAN_RX_FILTER_MEM_ADD_CRC_CHECK_TX_DESC_EN         (1u <<  0) //!< CRC check for the TX descriptors is enabled
+#define XCAN_RX_FILTER_MEM_ADD_CRC_CHECK_RX_DESC_EN         (1u <<  1) //!< CRC check for the RX descriptors is enabled
+#define XCAN_RX_FILTER_MEM_ADD_SFTY_ERR_EN                  (1u <<  2) //!< sfty_err signal from the local memory interface is checked
+#define XCAN_RX_FILTER_MEM_ADD_DATA_PARITY_CHECK_RX_EN      (1u <<  3) //!< Data path parity check performed on the RX path is enabled
+#define XCAN_RX_FILTER_MEM_ADD_DATA_PARITY_CHECK_TX_EN      (1u <<  4) //!< Data path parity check performed on the TX path is enabled
+#define XCAN_RX_FILTER_MEM_ADD_ADDR_PTR_PARITY_CHECK_TX_EN  (1u <<  5) //!< Address pointer parity check on the TX path is enabled
+#define XCAN_RX_FILTER_MEM_ADD_ADDR_PTR_PARITY_CHECK_RX_EN  (1u <<  6) //!< Address pointer parity check on the RX path is enabled
+#define XCAN_RX_FILTER_MEM_ADD_READ_WRITE_DMA_CHAN_CHECK    (1u <<  7) //!< Read/Write DMA channels routing is checked
+#define XCAN_RX_FILTER_MEM_ADD_WATCHDOG_DMA_AXI_EN          (1u <<  8) //!< Watchdog for the DMA_AXI interface is enabled
+#define XCAN_RX_FILTER_MEM_ADD_WATCHDOG_MEM_AXI_EN          (1u <<  9) //!< Watchdog for the MEM_AXI interface is enabled
+#define XCAN_RX_FILTER_MEM_ADD_WATCHDOG_RX_MSG_EN           (1u << 10) //!< Watchdogs for the internal RX_MSG and TX_MSG interfaces are enabled
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN RX Filter Base Address register (Read/Write, Offset: 0x018, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FILTER_MEM_ADD_Register
+{
+  uint32_t RX_FILTER_MEM_ADD;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t BASE_ADDR: 16; /*!<  0-15 - Define the base address where the RX filter elements are defined in L_MEM (up to 64Kbytes can be addressed).
+                             *           The BASE_ADDR[1:0] bits are always assumed to be 0b00 whatever the value written. This address value must always be word aligned (32bit).
+                             *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                             */
+    uint32_t          : 16; //!< 16-31
+  } Bits;
+} XCAN_RX_FILTER_MEM_ADD_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FILTER_MEM_ADD_Register, 4);
+
+#define XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Pos          0
+#define XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Mask         (0xFFFFu << XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Pos)
+#define XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_GET(value)   (((uint32_t)(value) & XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Mask) >> XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Pos) //!< Get the base address where the TX FIFO Queue descriptors are stored in L_MEM
+#define XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_SET(value)   (((uint32_t)(value) << XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Pos) & XCAN_RX_FILTER_MEM_ADD_BASE_ADDR_Mask) //!< Set the base address where the TX FIFO Queue descriptors are stored in L_MEM
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN TX Descriptor Base Address register (Read/Write, Offset: 0x01C, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_DESC_MEM_ADD_Register
+{
+  uint32_t TX_DESC_MEM_ADD;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t FQ_BASE_ADDR: 16; /*!<  0-15 - Define the base address where the TX FIFO Queue descriptors are stored in L_MEM (up to 64Kbytes can be addressed).
+                                *           The FQ_BASE_ADDR[1:0] bits are always assumed to be 0b00 whatever the value written. This address value must always be word aligned (32bit).
+                                *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                                */
+    uint32_t PQ_BASE_ADDR: 16; /*!< 16-31 - Define the base address where the TX Priority Queue descriptors are stored in L_MEM (up to 64Kbytes can be addressed).
+                                *           The PQ_BASE_ADDR[1:0] bits are always assumed to be 0b00 whatever the value written. This address value must always be word aligned (32bit).
+                                *           This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                                */
+  } Bits;
+} XCAN_TX_DESC_MEM_ADD_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_DESC_MEM_ADD_Register, 4);
+
+#define XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Pos          0
+#define XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Mask         (0xFFFFu << XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Pos)
+#define XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_GET(value)   (((uint32_t)(value) & XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Mask) >> XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Pos) //!< Get the base address where the TX FIFO Queue descriptors are stored in L_MEM
+#define XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_SET(value)   (((uint32_t)(value) << XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Pos) & XCAN_TX_DESC_MEM_ADD_FQ_BASE_ADDR_Mask) //!< Set the base address where the TX FIFO Queue descriptors are stored in L_MEM
+#define XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Pos          16
+#define XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Mask         (0xFFFFu << XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Pos)
+#define XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_GET(value)   (((uint32_t)(value) & XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Mask) >> XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Pos) //!< Get the base address where the TX Priority Queue descriptors are stored in L_MEM
+#define XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_SET(value)   (((uint32_t)(value) << XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Pos) & XCAN_TX_DESC_MEM_ADD_PQ_BASE_ADDR_Mask) //!< Set the base address where the TX Priority Queue descriptors are stored in L_MEM
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN AXI address extension register (Read/Write, Offset: 0x020, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_AXI_ADD_EXT_Register
+{
+  uint32_t AXI_ADD_EXT;            /*!< Define the MSB of the read/write AXI address bus used on the DMA_AXI interface.
+                                    *   If not required, leave the default value and do not connect the upper part of the DMA_AXI read/write address bus.
+                                    *   This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_AXI_ADD_EXT_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_AXI_ADD_EXT_Register, 4);
+
+#define XCAN_AXI_ADD_EXT_Pos         0
+#define XCAN_AXI_ADD_EXT_Mask        (0xFFFFFFFFu << XCAN_AXI_ADD_EXT_Pos)
+#define XCAN_AXI_ADD_EXT_GET(value)  (((uint32_t)(value) & XCAN_AXI_ADD_EXT_Mask) >> XCAN_AXI_ADD_EXT_Pos) //!< Get the MSB of the read/write AXI address bus used on the DMA_AXI interface
+#define XCAN_AXI_ADD_EXT_GET(value)  (((uint32_t)(value) << XCAN_AXI_ADD_EXT_Pos) & XCAN_AXI_ADD_EXT_Mask) //!< Get the MSB of the read/write AXI address bus used on the DMA_AXI interface
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN AXI parameter register (Read/Write, Offset: 0x024, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_AXI_PARAMS_Register
+{
+  uint32_t AXI_PARAMS;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t AR_MAX_PEND:  2; /*!< 0- 1 - AR_MAX_PEND[1:0] defines the maximum read pending transactions on DMA_AXI interface: 0 -> no read transfer; 1 -> 1 outstanding read transaction; 2 -> 2 outstanding read transactions,
+                               *          3 -> 3 outstanding read transactions. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                               */
+    uint32_t            :  2; //!< 2- 3
+    uint32_t AW_MAX_PEND:  2; /*!< 4- 5 - AW_MAX_PEND[1:0] defines the maximum write pending transactions on DMA_AXI interface: 0 -> no write transfer; 1 -> 1 outstanding write transaction allowed;
+                               *          2 -> 2 outstanding write transactions, 3 -> 3 outstanding write transactions. This bit field register is only accessible in write mode if the MH is not started, see MH_CTRL.START = 0
+                               */
+    uint32_t            : 26; //!< 6-31
+  } Bits;
+} XCAN_AXI_PARAMS_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_AXI_PARAMS_Register, 4);
+
+#define XCAN_AXI_PARAMS_AR_MAX_PEND_Pos         0
+#define XCAN_AXI_PARAMS_AR_MAX_PEND_Mask        (0x3u << XCAN_AXI_PARAMS_AR_MAX_PEND_Pos)
+#define XCAN_AXI_PARAMS_AR_MAX_PEND_GET(value)  (((uint32_t)(value) & XCAN_AXI_PARAMS_AR_MAX_PEND_Mask) >> XCAN_AXI_PARAMS_AR_MAX_PEND_Pos) //!< Get the maximum read pending transactions on DMA_AXI interface
+#define XCAN_AXI_PARAMS_AR_MAX_PEND_SET(value)  (((uint32_t)(value) << XCAN_AXI_PARAMS_AR_MAX_PEND_Pos) & XCAN_AXI_PARAMS_AR_MAX_PEND_Mask) //!< Set the maximum read pending transactions on DMA_AXI interface
+#define XCAN_AXI_PARAMS_AW_MAX_PEND_Pos         4
+#define XCAN_AXI_PARAMS_AW_MAX_PEND_Mask        (0x3u << XCAN_AXI_PARAMS_AW_MAX_PEND_Pos)
+#define XCAN_AXI_PARAMS_AW_MAX_PEND_GET(value)  (((uint32_t)(value) & XCAN_AXI_PARAMS_AW_MAX_PEND_Mask) >> XCAN_AXI_PARAMS_AW_MAX_PEND_Pos) //!< Get the maximum write pending transactions on DMA_AXI interface
+#define XCAN_AXI_PARAMS_AW_MAX_PEND_SET(value)  (((uint32_t)(value) << XCAN_AXI_PARAMS_AW_MAX_PEND_Pos) & XCAN_AXI_PARAMS_AW_MAX_PEND_Mask) //!< Set the maximum write pending transactions on DMA_AXI interface
+
+//-----------------------------------------------------------------------------
+
+//! XCAN Message Handler Lock register (Read/Write, Offset: 0x028, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_MH_LOCK_Register
+{
+  uint32_t MH_LOCK;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t ULK: 16; //!<  0-11 - Unlock key register. Two consecutive writes to this bit field, starting with 0x1234 and 0x4321, must be done before writing to a register being locked
+    uint32_t TMK: 16; //!< 16-23 - Test mode key register. Two consecutive writes to this bit field, starting with 0x6789 and 0x9876, must be done before writing to the DEBUG_TEST_CTRL register
+  } Bits;
+} XCAN_MH_LOCK_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_MH_LOCK_Register, 4);
+
+#define XCAN_IC_ULK_UNLOCK_KEY1       0x1234 //!< Unlock first key
+#define XCAN_IC_ULK_UNLOCK_KEY2       0x4321 //!< Unlock second key
+#define XCAN_MH_LOCK_ULK_Pos          0
+#define XCAN_MH_LOCK_ULK_Mask         (0xFFFFu << XCAN_MH_LOCK_ULK_Pos)
+#define XCAN_MH_LOCK_ULK_GET(value)   (((uint32_t)(value) & XCAN_MH_LOCK_ULK_Mask) >> XCAN_MH_LOCK_ULK_Pos) //!< Get unlock key register
+#define XCAN_MH_LOCK_ULK_SET(value)   (((uint32_t)(value) << XCAN_MH_LOCK_ULK_Pos) & XCAN_MH_LOCK_ULK_Mask) //!< Set unlock key register
+#define XCAN_IC_TMK_TEST_UNLOCK_KEY1  0x6789 //!< Unlock first
+#define XCAN_IC_TMK_TEST_UNLOCK_KEY2  0x9876 //!< Unlock second
+#define XCAN_MH_LOCK_TMK_Pos          16
+#define XCAN_MH_LOCK_TMK_Mask         (0xFFFFu << XCAN_MH_LOCK_TMK_Pos)
+#define XCAN_MH_LOCK_TMK_GET(value)   (((uint32_t)(value) & XCAN_MH_LOCK_TMK_Mask) >> XCAN_MH_LOCK_TMK_Pos) //!< Get test mode key register
+#define XCAN_MH_LOCK_TMK_SET(value)   (((uint32_t)(value) << XCAN_MH_LOCK_TMK_Pos) & XCAN_MH_LOCK_TMK_Mask) //!< Set test mode key register
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX descriptor Current Address Pointer (Read-Only, Offset: 0x100, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_DESC_ADD_PT_Register
+{
+  uint32_t TX_DESC_ADD_PT;         /*!< Address used to fetch a TX descriptor for the TX FIFO Queues or TX Priority Queue slots.
+                                    *   It could be for several reasons: a new message needs to be fetched from a TX FIFO Queue or a new message is defined in a TX Priority Queue slot.
+                                    *   This address value is always word aligned (32bit)
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_DESC_ADD_PT_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_DESC_ADD_PT_Register, 4);
+
+#define XCAN_TX_DESC_ADD_PT_Pos         0
+#define XCAN_TX_DESC_ADD_PT_Mask        (0xFFFFFFFFu << XCAN_TX_DESC_ADD_PT_Pos)
+#define XCAN_TX_DESC_ADD_PT_GET(value)  (((uint32_t)(value) & XCAN_TX_DESC_ADD_PT_Mask) >> XCAN_TX_DESC_ADD_PT_Pos) //!< Get the address used to fetch a TX descriptor for the TX FIFO Queues or TX Priority Queue slot
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX Message Counter register (Read/Write, Offset: 0x104, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_STATISTICS_Register
+{
+  uint32_t TX_STATISTICS;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t SUCC  : 12; /*!<  0-11 - Counter incremented with every successful transmission of a CAN message to the CAN bus. The counter wraps automatically to 0 and can be cleared when writing 0 to the bit field.
+                          *           A STATS_IRQ interrupt is generated when the counter wraps
+                          */
+    uint32_t       :  4; //!< 12-15
+    uint32_t UNSUCC: 12; /*!< 16-23 - Counter incremented with every unsuccessful transmission of a CAN message to the CAN bus. The counter wraps automatically to 0 and can be cleared when writing 0 to the bit field.
+                          *           A STATS_IRQ interrupt is generated when the counter wraps
+                          */
+    uint32_t       :  4; //!< 24-31
+  } Bits;
+} XCAN_TX_STATISTICS_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_STATISTICS_Register, 4);
+
+#define XCAN_TX_STATISTICS_SUCC_Pos           0
+#define XCAN_TX_STATISTICS_SUCC_Mask          (0xFFFu << XCAN_TX_STATISTICS_SUCC_Pos)
+#define XCAN_TX_STATISTICS_SUCC_GET(value)    (((uint32_t)(value) & XCAN_TX_STATISTICS_SUCC_Mask) >> XCAN_TX_STATISTICS_SUCC_Pos) //!< Get counter incremented with every successful transmission of a CAN message to the CAN bus
+#define XCAN_TX_STATISTICS_SUCC_SET(value)    (((uint32_t)(value) << XCAN_TX_STATISTICS_SUCC_Pos) & XCAN_TX_STATISTICS_SUCC_Mask) //!< Set counter incremented with every successful transmission of a CAN message to the CAN bus
+#define XCAN_TX_STATISTICS_UNSUCC_Pos         16
+#define XCAN_TX_STATISTICS_UNSUCC_Mask        (0xFFFu << XCAN_TX_STATISTICS_UNSUCC_Pos)
+#define XCAN_TX_STATISTICS_UNSUCC_GET(value)  (((uint32_t)(value) & XCAN_TX_STATISTICS_UNSUCC_Mask) >> XCAN_TX_STATISTICS_UNSUCC_Pos) //!< Get counter incremented with every unsuccessful transmission of a CAN message to the CAN bus
+#define XCAN_TX_STATISTICS_UNSUCC_SET(value)  (((uint32_t)(value) << XCAN_TX_STATISTICS_UNSUCC_Pos) & XCAN_TX_STATISTICS_UNSUCC_Mask) //!< Set counter incremented with every unsuccessful transmission of a CAN message to the CAN bus
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX FIFO Queue Status register 0 (Read-Only, Offset: 0x108, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_STS0_Register
+{
+  uint32_t TX_FQ_STS0;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t BUSY: 8; /*!<  0- 7 - When BUSY[n] = 1 the TX FIFO Queue n is active, this means the FIFO Queue is started and running (TX message defined in the TX FIFO Queue n can be processed).
+                       *           When the BUSY[n] = 0, the TX FIFO Queue n is stopped and would require a write to the TX_FQ_CTRL0.START[n] to make it active again.
+                       *           A TX FIFO Queue can go inactive if the END bit in the last TX descriptor of a TX message is set.
+                       *           In this case the, the BUSY[n] = 0 can occur only if the TX header descriptor of this last message has been acknowledged for the TX FIFO Queue n.
+                       *           When the TX FIFO Queue n is aborted, the BUSY[n] flag is set to 0 only when no acknowledge is pending
+                       */
+    uint32_t     : 8; //!<  8-15
+    uint32_t STOP: 8; /*!< 16-23 - When STOP[n] = 1 the TX FIFO Queue n is on hold, this means the FIFO Queue is started and running but waits for the SW to keep going. The STOP[n] can be set only if the BUSY[n] = 1.
+                       *           Several root causes may lead to this state: an error is detected, or a TX descriptor is not valid. To identify the potential issues, refer to the TX_FQ_STS1 register.
+                       *           In order to keep going with the TX FIFO Queue n, a write to the TX_FQ_CTRL0.START[n] is required. When BUSY[n] = 0, this bit is automatically set to 0
+                       */
+    uint32_t     : 8; //!< 24-31
+  } Bits;
+} XCAN_TX_FQ_STS0_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_STS0_Register, 4);
+
+#define XCAN_TX_FQ_STS0_BUSY_Pos         0
+#define XCAN_TX_FQ_STS0_BUSY_Mask        (0xFFu << XCAN_TX_FQ_STS0_BUSY_Pos)
+#define XCAN_TX_FQ_STS0_BUSY_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_STS0_BUSY_Mask) >> XCAN_TX_FQ_STS0_BUSY_Pos) //!< Get TX FIFO Queue n active
+#define XCAN_TX_FQ_STS0_STOP_Pos         16
+#define XCAN_TX_FQ_STS0_STOP_Mask        (0xFFu << XCAN_TX_FQ_STS0_STOP_Pos)
+#define XCAN_TX_FQ_STS0_STOP_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_STS0_STOP_Mask) >> XCAN_TX_FQ_STS0_STOP_Pos) //!< Get TX FIFO Queue n on hold
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX FIFO Queue Status register 1 (Read-Only, Offset: 0x10C, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_STS1_Register
+{
+  uint32_t TX_FQ_STS1;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t UNVALID: 8; //!<  0- 7 - When UNVALID[n] = 1 the TX FIFO Queue n is on hold due to an TX descriptor with VALID=0 was loaded
+    uint32_t        : 8; //!<  8-15
+    uint32_t ERROR  : 8; //!< 16-23 - When ERROR[n] = 1 the TX FIFO Queue n is on hold due to an inconsistent TX descriptor was loaded, see chapter Descriptor Protection
+    uint32_t        : 8; //!< 24-31
+  } Bits;
+} XCAN_TX_FQ_STS1_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_STS1_Register, 4);
+
+#define XCAN_TX_FQ_STS1_UNVALID_Pos         0
+#define XCAN_TX_FQ_STS1_UNVALID_Mask        (0xFFu << XCAN_TX_FQ_STS1_UNVALID_Pos)
+#define XCAN_TX_FQ_STS1_UNVALID_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_STS1_UNVALID_Mask) >> XCAN_TX_FQ_STS1_UNVALID_Pos) //!< Get TX FIFO Queue n on hold due to an TX descriptor with VALID=0 was loaded
+#define XCAN_TX_FQ_STS1_ERROR_Pos           16
+#define XCAN_TX_FQ_STS1_ERROR_Mask          (0xFFu << XCAN_TX_FQ_STS1_ERROR_Pos)
+#define XCAN_TX_FQ_STS1_ERROR_GET(value)    (((uint32_t)(value) & XCAN_TX_FQ_STS1_ERROR_Mask) >> XCAN_TX_FQ_STS1_ERROR_Pos) //!< Get TX FIFO Queue n on hold due to an inconsistent TX descriptor was loaded, see chapter Descriptor Protection
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX FIFO Queue Control register 0 (Read/Write, Offset: 0x110, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_CTRL0_Register
+{
+  uint32_t TX_FQ_CTRL0;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t START:  8; /*!< 0- 7 - When writing a 1 to the START[n], the TX FIFO Queue n is started. This bit is autocleared. Once started, the TX_FQ_STS0.BUSY[n] is set to 1.
+                         *          The MH must be started prior to any TX FIFO Queue start (MH_STS.BUSY set to 1).
+                         *          A TX FIFO Queue n can only be started if TX_FQ_CTRL2.ENABLE[n] is set to 1 and in order to avoid a dead lock situation with the PRT, the ENABLE signal from the PRT is high
+                         */
+    uint32_t      : 24; //!< 8-31
+  } Bits;
+} XCAN_TX_FQ_CTRL0_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_CTRL0_Register, 4);
+
+#define XCAN_TX_FQ_CTRL0_Pos         0
+#define XCAN_TX_FQ_CTRL0_Mask        (0xFFu << XCAN_TX_FQ_CTRL0_Pos)
+#define XCAN_TX_FQ_CTRL0_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_CTRL0_Mask) >> XCAN_TX_FQ_CTRL0_Pos) //!< Get TX FIFO Queue n started
+#define XCAN_TX_FQ_CTRL0_SET(value)  (((uint32_t)(value) << XCAN_TX_FQ_CTRL0_Pos) & XCAN_TX_FQ_CTRL0_Mask) //!< Set TX FIFO Queue n started
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX FIFO Queue Control register 1 (Read/Write, Offset: 0x114, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_CTRL1_Register
+{
+  uint32_t TX_FQ_CTRL1;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t ABORT:  8; /*!< 0- 7 - When ABORT[n] is set to 1, the TX FIFO Queue n is aborted. Once set to 1, the MH will abort all pending transaction related to the TX FIFO Queue n whenever required.
+                         *          This bit must be set back to 0 only when the TX FIFO Queue n is inactive, TX_FQ_STS0.BUSY[n] = 0.
+                         *          This bit field register is only accessible in write mode if the unlock key sequence has been performed prior to write
+                         */
+    uint32_t      : 24; //!< 8-31
+  } Bits;
+} XCAN_TX_FQ_CTRL1_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_CTRL1_Register, 4);
+
+#define XCAN_TX_FQ_CTRL1_Pos         0
+#define XCAN_TX_FQ_CTRL1_Mask        (0xFFu << XCAN_TX_FQ_CTRL1_Pos)
+#define XCAN_TX_FQ_CTRL1_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_CTRL1_Mask) >> XCAN_TX_FQ_CTRL1_Pos) //!< Get TX FIFO Queue n aborted
+#define XCAN_TX_FQ_CTRL1_SET(value)  (((uint32_t)(value) << XCAN_TX_FQ_CTRL1_Pos) & XCAN_TX_FQ_CTRL1_Mask) //!< Set TX FIFO Queue n aborted
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX FIFO Queue Control register 2 (Read/Write, Offset: 0x418, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_CTRL2_Register
+{
+  uint32_t TX_FQ_CTRL2;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t ENABLE:  8; //!< 0- 7 - When ENABLE[n] is set to 1, the TX FIFO Queue n is enabled. A TX FIFO Queue cannot be started if it is not enabled. Aborting a not started TX FIFO Queue has no effect
+    uint32_t       : 24; //!< 8-31
+  } Bits;
+} XCAN_TX_FQ_CTRL2_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_CTRL2_Register, 4);
+
+#define XCAN_TX_FQ_CTRL2_Pos         0
+#define XCAN_TX_FQ_CTRL2_Mask        (0xFFu << XCAN_TX_FQ_CTRL2_Pos)
+#define XCAN_TX_FQ_CTRL2_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_CTRL2_Mask) >> XCAN_TX_FQ_CTRL2_Pos) //!< Get TX FIFO Queue n enabled
+#define XCAN_TX_FQ_CTRL2_SET(value)  (((uint32_t)(value) << XCAN_TX_FQ_CTRL2_Pos) & XCAN_TX_FQ_CTRL2_Mask) //!< Set TX FIFO Queue n enabled
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN TX FIFO Queue Current Address Pointers.
+ * TX FIFO Queue 0 Current Address Pointer (Read-Only, Offset: 0x120, Initial value: 0x00000000).
+ * TX FIFO Queue 1 Current Address Pointer (Read-Only, Offset: 0x130, Initial value: 0x00000000).
+ * TX FIFO Queue 2 Current Address Pointer (Read-Only, Offset: 0x140, Initial value: 0x00000000).
+ * TX FIFO Queue 3 Current Address Pointer (Read-Only, Offset: 0x150, Initial value: 0x00000000).
+ * TX FIFO Queue 4 Current Address Pointer (Read-Only, Offset: 0x160, Initial value: 0x00000000).
+ * TX FIFO Queue 5 Current Address Pointer (Read-Only, Offset: 0x170, Initial value: 0x00000000).
+ * TX FIFO Queue 6 Current Address Pointer (Read-Only, Offset: 0x180, Initial value: 0x00000000).
+ * TX FIFO Queue 7 Current Address Pointer (Read-Only, Offset: 0x190, Initial value: 0x00000000).
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_ADD_PT_Register
+{
+  uint32_t TX_FQ_ADD_PT;           /*!< Provide the header descriptor address of the TX message being in used by the arbiter for the TX FIFO Queue.
+                                    *   To follow TX descriptors over time while running TX FIFO Queues, refer to the TX_DESC_ADD_PT register. This address value is always word aligned (32bit)
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_FQ_ADD_PT_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_ADD_PT_Register, 4);
+
+#define XCAN_TX_FQ_ADD_PT_Pos         0
+#define XCAN_TX_FQ_ADD_PT_Mask        (0xFFFFFFFCu << XCAN_TX_FQ_ADD_PT_Pos)
+#define XCAN_TX_FQ_ADD_PT_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_ADD_PT_Mask) >> XCAN_TX_FQ_ADD_PT_Pos) //!< Get the header descriptor address of the TX message being in used by the arbiter for the TX FIFO Queue
+
+
+
+/*! XCAN TX FIFO Queue Start Addresses.
+ * TX FIFO Queue 0 Start Address (Read/Write, Offset: 0x124, Initial value: 0x00000000).
+ * TX FIFO Queue 1 Start Address (Read/Write, Offset: 0x134, Initial value: 0x00000000).
+ * TX FIFO Queue 2 Start Address (Read/Write, Offset: 0x144, Initial value: 0x00000000).
+ * TX FIFO Queue 3 Start Address (Read/Write, Offset: 0x154, Initial value: 0x00000000).
+ * TX FIFO Queue 4 Start Address (Read/Write, Offset: 0x164, Initial value: 0x00000000).
+ * TX FIFO Queue 5 Start Address (Read/Write, Offset: 0x174, Initial value: 0x00000000).
+ * TX FIFO Queue 6 Start Address (Read/Write, Offset: 0x184, Initial value: 0x00000000).
+ * TX FIFO Queue 7 Start Address (Read/Write, Offset: 0x194, Initial value: 0x00000000).
+ * This register is only accessible in write mode if the TX FIFO Queue n is not busy, see BUSY flag in TX_FQ_STS0 register.
+ * This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_START_ADD_Register
+{
+  uint32_t TX_FQ_START_ADD;        /*!< Define the start address of the TX FIFO Queue link list descriptor in the system memory. The VAL[1:0] bits are always assumed to be 0b00 whatever the value written.
+                                    *   This address value must always be word aligned (32bit). This bit field register is only accessible in write mode if the TX FIFO Queue n is not busy, see BUSY flag in TX_FQ_STS0 register
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_FQ_START_ADD_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_START_ADD_Register, 4);
+
+#define XCAN_TX_FQ_START_ADD_Pos         0
+#define XCAN_TX_FQ_START_ADD_Mask        (0xFFFFFFFCu << XCAN_TX_FQ_START_ADD_Pos)
+#define XCAN_TX_FQ_START_ADD_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_START_ADD_Mask) >> XCAN_TX_FQ_START_ADD_Pos) //!< Get the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
+#define XCAN_TX_FQ_START_ADD_SET(value)  (((uint32_t)(value) << XCAN_TX_FQ_START_ADD_Pos) & XCAN_TX_FQ_START_ADD_Mask) //!< Set the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
+
+
+
+/*! XCAN TX FIFO Queue Size registers.
+ * TX FIFO Queue 0 Size register (Read/Write, Offset: 0x128, Initial value: 0x00000000).
+ * TX FIFO Queue 1 Size register (Read/Write, Offset: 0x138, Initial value: 0x00000000).
+ * TX FIFO Queue 2 Size register (Read/Write, Offset: 0x148, Initial value: 0x00000000).
+ * TX FIFO Queue 3 Size register (Read/Write, Offset: 0x158, Initial value: 0x00000000).
+ * TX FIFO Queue 4 Size register (Read/Write, Offset: 0x168, Initial value: 0x00000000).
+ * TX FIFO Queue 5 Size register (Read/Write, Offset: 0x178, Initial value: 0x00000000).
+ * TX FIFO Queue 6 Size register (Read/Write, Offset: 0x188, Initial value: 0x00000000).
+ * TX FIFO Queue 7 Size register (Read/Write, Offset: 0x198, Initial value: 0x00000000).
+ * This register is only accessible in write mode if the TX FIFO Queue n is not busy, see BUSY flag in TX_FQ_STS0 register. This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_FQ_SIZE_Register
+{
+  uint32_t TX_FQ_SIZE;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t MAX_DESC: 10; /*!<  0- 9 - Define the maximum number of TX descriptors in the TX FIFO Queue link list descriptors.
+                            *           It is important to note that MAX_DESC = 0 does not prevent the TX FIFO Queue to be enabled and started.
+                            *           An active and running TX FIFO Queue with MAX_DESC = 0 is not allowed and will result in a DESC_ERR interrupt if no TX descriptor is defined.
+                            *           The memory size to allocate is MAX_DESC * 32bytes for MAX_DESC > = 1. This bit field register is only accessible in write mode if the TX FIFO Queue n is not busy, see BUSY flag in TX_FQ_STS0 register
+                            */
+    uint32_t         : 22; //!< 10-31
+  } Bits;
+} XCAN_TX_FQ_SIZE_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_SIZE_Register, 4);
+
+#define XCAN_TX_FQ_SIZE_MAX_DESC_Pos         0
+#define XCAN_TX_FQ_SIZE_MAX_DESC_Mask        (0x3Fu << XCAN_RX_FQ_SIZE_MAX_DESC_Pos)
+#define XCAN_TX_FQ_SIZE_MAX_DESC_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_SIZE_MAX_DESC_Mask) >> XCAN_RX_FQ_SIZE_MAX_DESC_Pos) //!< Get the maximum number of TX descriptors in the TX FIFO Queue link list descriptors
+#define XCAN_TX_FQ_SIZE_MAX_DESC_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_SIZE_MAX_DESC_Pos) & XCAN_RX_FQ_SIZE_MAX_DESC_Mask) //!< Set the maximum number of TX descriptors in the TX FIFO Queue link list descriptors
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX Priority Queue Status register 0 (Read-Only, Offset: 0x300, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_PQ_STS0_Register
+{
+  uint32_t BUSY;                   /*!< When BUSY[n] = 1, the TX Priority Queue slot n is busy, which means that the TX descriptor in the slot n is being loaded in L_MEM and considered by the TX-Scan.
+                                    *   As long as this bit remains high, the message attached to the slot n has not been sent yet. The BUSY[n] = 0 can occur only if the TX header descriptor of the slot n has been acknowledged
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_PQ_STS0_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_STS0_Register, 4);
+
+#define XCAN_TX_PQ_STS0_SENT_Pos         0
+#define XCAN_TX_PQ_STS0_SENT_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_STS0_SENT_Pos)
+#define XCAN_TX_PQ_STS0_SENT_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_STS0_SENT_Mask) >> XCAN_TX_PQ_STS0_SENT_Pos) //!< Get the TX Priority Queue slot n busy
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX Priority Queue Status register 1 (Read-Only, Offset: 0x304, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_PQ_STS1_Register
+{
+  uint32_t SENT;                   /*!< When SENT[n] = 1 the TX message assigned to the TX Priority Queue slot n has been transmitted and the TX descriptor attached to the slot n is acknowledged.
+                                    *   This bit will be cleared once a new start on this slot will occur
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_PQ_STS1_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_STS1_Register, 4);
+
+#define XCAN_TX_PQ_STS1_SENT_Pos         0
+#define XCAN_TX_PQ_STS1_SENT_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_STS1_SENT_Pos)
+#define XCAN_TX_PQ_STS1_SENT_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_STS1_SENT_Mask) >> XCAN_TX_PQ_STS1_SENT_Pos) //!< Get the TX message assigned to the TX Priority Queue slot n has been transmitted and the TX descriptor attached to the slot n is acknowledged
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX Priority Queue Control register 0 (Read/Write, Offset: 0x308, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_PQ_CTRL0_Register
+{
+  uint32_t START;                  /*!< When writing a 1 to the START[n], the TX Priority Queue slot n is started and running. This bit is autocleared and once started, the TX_PQ_STS0.BUSY[n] is set to 1.
+                                    *   The MH must be started prior to any TX Priority Queue slot start (MH_STS.BUSY set to 1).
+                                    *   A TX Priority Queue slot n can only be started if TX_PQ_CTRL2.ENABLE[n] is set to 1 and in order to avoid a dead lock situation with the PRT, the ENABLE signal from the PRT is high
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_PQ_CTRL0_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_CTRL0_Register, 4);
+
+#define XCAN_TX_PQ_CTRL0_START_Pos         0
+#define XCAN_TX_PQ_CTRL0_START_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_CTRL0_START_Pos)
+#define XCAN_TX_PQ_CTRL0_START_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_CTRL0_START_Mask) >> XCAN_TX_PQ_CTRL0_START_Pos) //!< Get the TX Priority Queue slot n started and running
+#define XCAN_TX_PQ_CTRL0_START_SET(value)  (((uint32_t)(value) << XCAN_TX_PQ_CTRL0_START_Pos) & XCAN_TX_PQ_CTRL0_START_Mask) //!< Set the TX Priority Queue slot n started and running
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN TX Priority Queue Control register 1 (Read/Write, Offset: 0x310, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the unlock key sequence has been performed prior to write
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_PQ_CTRL1_Register
+{
+  uint32_t ABORT;                  /*!< When ABORT[n] is set to 1, the TX Priority Queue slot n is aborted. This bit must be set back to 0 only when the TX Priority Queue slot n is inactive, TX_FQ_STS0.BUSY[n] = 0.
+                                    *   A TX message attached to a slot can only be aborted if it is not stored in the two internal buffers holding the two best candidates for the next TX message.
+                                    *   Despite a TX message is aborted, it may have been sent, check the TX_PQ_STS1.SENT[n] bit register for the slot n.
+                                    *   This bit field register is only accessible in write mode if the unlock key sequence has been performed prior to write
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_PQ_CTRL1_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_CTRL1_Register, 4);
+
+#define XCAN_TX_PQ_CTRL1_ABORT_Pos         0
+#define XCAN_TX_PQ_CTRL1_ABORT_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_CTRL1_ABORT_Pos)
+#define XCAN_TX_PQ_CTRL1_ABORT_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_CTRL1_ABORT_Mask) >> XCAN_TX_PQ_CTRL1_ABORT_Pos) //!< Get the TX Priority Queue slot n aborted
+#define XCAN_TX_PQ_CTRL1_ABORT_SET(value)  (((uint32_t)(value) << XCAN_TX_PQ_CTRL1_ABORT_Pos) & XCAN_TX_PQ_CTRL1_ABORT_Mask) //!< Set the TX Priority Queue slot n aborted
+
+//-----------------------------------------------------------------------------
+
+//! XCAN TX Priority Queue Control register 2 (Read/Write, Offset: 0x314, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_PQ_CTRL2_Register
+{
+  uint32_t ENABLE;                 //!< When ENABLE[n] is set to 1, the slot n in the TX Priority Queue is enabled. A TX Priority Queue slot cannot be started if not enabled. Aborting a not started slot n has no effect
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_PQ_CTRL2_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_CTRL2_Register, 4);
+
+#define XCAN_TX_PQ_CTRL2_ENABLE_Pos         0
+#define XCAN_TX_PQ_CTRL2_ENABLE_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_CTRL2_ENABLE_Pos)
+#define XCAN_TX_PQ_CTRL2_ENABLE_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_CTRL2_ENABLE_Mask) >> XCAN_TX_PQ_CTRL2_ENABLE_Pos) //!< Get the slot n in the TX Priority Queue enabled
+#define XCAN_TX_PQ_CTRL2_ENABLE_SET(value)  (((uint32_t)(value) << XCAN_TX_PQ_CTRL2_ENABLE_Pos) & XCAN_TX_PQ_CTRL2_ENABLE_Mask) //!< Set the slot n in the TX Priority Queue enabled
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN TX Priority Queue Start Address (Read/Write, Offset: 0x318, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the TX Priority Queue is not busy, see BUSY flag in TX_PQ_STS register.
+ * It means TX_PQ_STS register is equal to 0x0. This register is protected by a register bank CRC defined in CRC_REG register
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_TX_PQ_START_ADD_Register
+{
+  uint32_t TX_PQ_START_ADD;        /*!< Define the start address of the TX Priority Queue in the system memory.
+                                    *   All TX header descriptors in the TX Priority Queue are continuously defined from this start address.
+                                    *   The VAL[1:0] bits are always assumed to be 0b00 whatever the value written. This address value must always be word aligned (32bit).
+                                    *   This bit field register is only accessible in write mode if the TX Priority Queue is not busy, see BUSY flag in TX_PQ_STS register
+                                    */
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_TX_PQ_START_ADD_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_START_ADD_Register, 4);
+
+#define XCAN_TX_PQ_START_ADD_Pos         0
+#define XCAN_TX_PQ_START_ADD_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_START_ADD_Pos)
+#define XCAN_TX_PQ_START_ADD_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_START_ADD_Mask) >> XCAN_TX_PQ_START_ADD_Pos) //!< Get the start address of the TX Priority Queue in the system memory
+#define XCAN_TX_PQ_START_ADD_SET(value)  (((uint32_t)(value) << XCAN_TX_PQ_START_ADD_Pos) & XCAN_TX_PQ_START_ADD_Mask) //!< Set the start address of the TX Priority Queue in the system memory
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX descriptor Current Address Pointer (Read-Only, Offset: 0x400, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_DESC_ADD_PT_Register
+{
+  uint32_t RX_DESC_ADD_PT;         //!< Provide the address used to fetch the current RX descriptor. This address value is always word aligned (32bit)
+  uint8_t Bytes[sizeof(uint32_t)];
+} XCAN_RX_DESC_ADD_PT_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_DESC_ADD_PT_Register, 4);
+
+#define XCAN_RX_DESC_ADD_PT_Pos         0
+#define XCAN_RX_DESC_ADD_PT_Mask        (0xFFFFFFFFu << XCAN_RX_DESC_ADD_PT_Pos)
+#define XCAN_RX_DESC_ADD_PT_GET(value)  (((uint32_t)(value) & XCAN_RX_DESC_ADD_PT_Mask) >> XCAN_RX_DESC_ADD_PT_Pos) //!< Get the address used to fetch the current RX descriptor
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX Message Counter register (Read/Write, Offset: 0x404, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_STATISTICS_Register
+{
+  uint32_t RX_STATISTICS;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t SUCC  : 12; /*!<  0-11 - Counter incremented with every successful reception of a CAN message from the CAN bus. The counter wraps automatically to 0 and can be cleared when writing 0x00 to the bit field.
+                          *           An interrupt is generated when the counter wraps
+                          */
+    uint32_t       :  4; //!< 12-15
+    uint32_t UNSUCC: 12; /*!< 16-23 - Counter incremented with every unsuccessful reception of a CAN message from the CAN bus. The counter wraps automatically to 0 and can be cleared when writing 0x00 to the bit field.
+                          *           An interrupt is generated when the counter wraps
+                          */
+    uint32_t       :  4; //!< 24-31
+  } Bits;
+} XCAN_RX_STATISTICS_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_STATISTICS_Register, 4);
+
+#define XCAN_RX_STATISTICS_SUCC_Pos           0
+#define XCAN_RX_STATISTICS_SUCC_Mask          (0xFFFu << XCAN_RX_STATISTICS_SUCC_Pos)
+#define XCAN_RX_STATISTICS_SUCC_GET(value)    (((uint32_t)(value) & XCAN_RX_STATISTICS_SUCC_Mask) >> XCAN_RX_STATISTICS_SUCC_Pos) //!< Get counter incremented with every successful reception of a CAN message from the CAN bus
+#define XCAN_RX_STATISTICS_SUCC_SET(value)    (((uint32_t)(value) << XCAN_RX_STATISTICS_SUCC_Pos) & XCAN_RX_STATISTICS_SUCC_Mask) //!< Set counter incremented with every successful reception of a CAN message from the CAN bus
+#define XCAN_RX_STATISTICS_UNSUCC_Pos         16
+#define XCAN_RX_STATISTICS_UNSUCC_Mask        (0xFFFu << XCAN_RX_STATISTICS_UNSUCC_Pos)
+#define XCAN_RX_STATISTICS_UNSUCC_GET(value)  (((uint32_t)(value) & XCAN_RX_STATISTICS_UNSUCC_Mask) >> XCAN_RX_STATISTICS_UNSUCC_Pos) //!< Get counter incremented with every unsuccessful reception of a CAN message from the CAN bus
+#define XCAN_RX_STATISTICS_UNSUCC_SET(value)  (((uint32_t)(value) << XCAN_RX_STATISTICS_UNSUCC_Pos) & XCAN_RX_STATISTICS_UNSUCC_Mask) //!< Set counter incremented with every unsuccessful reception of a CAN message from the CAN bus
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX FIFO Queue Status register 0 (Read-Only, Offset: 0x408, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FQ_STS0_Register
+{
+  uint32_t RX_FQ_STS0;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t BUSY: 8; /*!<  0- 7 - When BUSY[n] = 1 the RX FIFO Queue n is busy, this means the FIFO Queue is started and running (RX message to be written to the RX FIFO Queue can be processed).
+                       *           When the BUSY[n] = 0, the RX FIFO Queue n is stopped and would require a write to the RX_FQ_CTRL0.START[n] to make it active again.
+                       *           When the RX FIFO Queue n is aborted, the BUSY[n] flag is set to 0 only when no acknowledge is pending
+                       */
+    uint32_t     : 8; //!<  8-15
+    uint32_t STOP: 8; /*!< 16-23 - When STOP[n] = 1 the RX FIFO Queue n is on hold, it means started but waiting for the SW to react. The STOP[n] can be set only if the BUSY[n] = 1.
+                       *           Several root causes may lead to the RX FIFO Queue n to stop: an error is detected, or an RX descriptor is not valid, or the FIFO is full.
+                       *           To identify the potential issues, refer to the RX_FQ_STS1 and RX_FQ_STS2 registers. In order to keep going with the RX FIFO Queue n, a write to the RX_FQ_CTRL0.START[n] is required.
+                       *           When BUSY[n] = 0, this bit is automatically set to 0
+                       */
+    uint32_t     : 8; //!< 24-31
+  } Bits;
+} XCAN_RX_FQ_STS0_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_STS0_Register, 4);
+
+#define XCAN_RX_FQ_STS0_BUSY_Pos         0
+#define XCAN_RX_FQ_STS0_BUSY_Mask        (0xFFu << XCAN_RX_FQ_STS0_BUSY_Pos)
+#define XCAN_RX_FQ_STS0_BUSY_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_STS0_BUSY_Mask) >> XCAN_RX_FQ_STS0_BUSY_Pos) //!< Get RX FIFO Queue n busy
+#define XCAN_RX_FQ_STS0_STOP_Pos         16
+#define XCAN_RX_FQ_STS0_STOP_Mask        (0xFFu << XCAN_RX_FQ_STS0_STOP_Pos)
+#define XCAN_RX_FQ_STS0_STOP_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_STS0_STOP_Mask) >> XCAN_RX_FQ_STS0_STOP_Pos) //!< Get RX FIFO Queue n on hold
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX FIFO Queue Status register 1 (Read-Only, Offset: 0x40C, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FQ_STS1_Register
+{
+  uint32_t RX_FQ_STS1;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t UNVALID: 8; //!<  0- 7 - When UNVALID[n] = 1 the RX FIFO Queue n is on hold due to an RX descriptor detected with VALID=0
+    uint32_t        : 8; //!<  8-15
+    uint32_t ERROR  : 8; //!< 16-23 - When ERROR[n] = 1 the RX FIFO Queue n is on hold due to an inconsistent RX descriptor being loaded, see chapter Descriptor Protection
+    uint32_t        : 8; //!< 24-31
+  } Bits;
+} XCAN_RX_FQ_STS1_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_STS1_Register, 4);
+
+#define XCAN_RX_FQ_STS1_UNVALID_Pos         0
+#define XCAN_RX_FQ_STS1_UNVALID_Mask        (0xFFu << XCAN_RX_FQ_STS1_UNVALID_Pos)
+#define XCAN_RX_FQ_STS1_UNVALID_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_STS1_UNVALID_Mask) >> XCAN_RX_FQ_STS1_UNVALID_Pos) //!< Get RX FIFO Queue n on hold due to an RX descriptor detected
+#define XCAN_RX_FQ_STS1_ERROR_Pos           16
+#define XCAN_RX_FQ_STS1_ERROR_Mask          (0xFFu << XCAN_RX_FQ_STS1_ERROR_Pos)
+#define XCAN_RX_FQ_STS1_ERROR_GET(value)    (((uint32_t)(value) & XCAN_RX_FQ_STS1_ERROR_Mask) >> XCAN_RX_FQ_STS1_ERROR_Pos) //!< Get RX FIFO Queue n on hold due to an inconsistent RX descriptor being loaded
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX FIFO Queue Status register 2 (Read-Only, Offset: 0x410, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FQ_STS2_Register
+{
+  uint32_t RX_FQ_STS2;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t DC_FULL:  8; /*!< 0- 7 - When DC_FULL[n] = 1 the RX FIFO Queue n is stopped due to the RX FIFO Queue n being full.
+                           *          This register is relevant only for the Continuous Mode as in Normal mode, there is no need to provide such information to the MH
+                           */
+    uint32_t        : 24; //!< 8-31
+  } Bits;
+} XCAN_RX_FQ_STS2_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_STS2_Register, 4);
+
+#define XCAN_RX_FQ_STS2_Pos         0
+#define XCAN_RX_FQ_STS2_Mask        (0xFFu << XCAN_RX_FQ_STS2_Pos)
+#define XCAN_RX_FQ_STS2_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_STS2_Mask) >> XCAN_RX_FQ_STS2_Pos) //!< Get RX FIFO Queue n stopped due to the RX FIFO Queue n being full
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX FIFO Queue Control register 0 (Read/Write, Offset: 0x414, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FQ_CTRL0_Register
+{
+  uint32_t RX_FQ_CTRL0;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t START:  8; /*!< 0- 7 - When writing a 1 to the START[n], the RX FIFO Queue n is started. This bit is autocleared and once started, the RX_FQ_STS0.BUSY[n] is set to 1.
+                         *          The MH must be started prior to any RX FIFO Queue start (MH_STS.BUSY set to 1). An RX FIFO Queue n can only be started if RX_FQ_CTRL2.ENABLE[n] is set to 1
+                         */
+    uint32_t      : 24; //!< 8-31
+  } Bits;
+} XCAN_RX_FQ_CTRL0_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_CTRL0_Register, 4);
+
+#define XCAN_RX_FQ_CTRL0_Pos         0
+#define XCAN_RX_FQ_CTRL0_Mask        (0xFFu << XCAN_RX_FQ_CTRL0_Pos)
+#define XCAN_RX_FQ_CTRL0_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_CTRL0_Mask) >> XCAN_RX_FQ_CTRL0_Pos) //!< Get RX FIFO Queue n started
+#define XCAN_RX_FQ_CTRL0_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_CTRL0_Pos) & XCAN_RX_FQ_CTRL0_Mask) //!< Set RX FIFO Queue n started
+
+//-----------------------------------------------------------------------------
+
+/*! XCAN RX FIFO Queue Control register 1 (Read/Write, Offset: 0x418, Initial value: 0x00000000)
+ * This register is only accessible in write mode if the unlock key sequence has been performed prior to write
+ */
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FQ_CTRL1_Register
+{
+  uint32_t RX_FQ_CTRL1;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t ABORT:  8; /*!< 0- 7 - When ABORT[n] is set to 1, the RX FIFO Queue n is aborted. Once set to 1, the MH will abort all pending transactions related to the RX FIFO Queue n whenever required.
+                         *          The abort can be effective only if the RX FIFO Queue n is enabled. This bit must be set back to 0 only when the RX FIFO Queue n is inactive, RX_FQ_STS0.BUSY[n] = 0.
+                         *          This bit field register is only accessible in write mode if the unlock key sequence has been performed prior to write
+                         */
+    uint32_t      : 24; //!< 8-31
+  } Bits;
+} XCAN_RX_FQ_CTRL1_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_CTRL1_Register, 4);
+
+#define XCAN_RX_FQ_CTRL1_Pos         0
+#define XCAN_RX_FQ_CTRL1_Mask        (0xFFu << XCAN_RX_FQ_CTRL1_Pos)
+#define XCAN_RX_FQ_CTRL1_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_CTRL1_Mask) >> XCAN_RX_FQ_CTRL1_Pos) //!< Get RX FIFO Queue n aborted
+#define XCAN_RX_FQ_CTRL1_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_CTRL1_Pos) & XCAN_RX_FQ_CTRL1_Mask) //!< Set RX FIFO Queue n aborted
+
+//-----------------------------------------------------------------------------
+
+//! XCAN RX FIFO Queue Control register 2 (Read/Write, Offset: 0x41C, Initial value: 0x00000000)
+XCAN_PACKITEM
+typedef union __XCAN_PACKED__ XCAN_RX_FQ_CTRL2_Register
+{
+  uint32_t RX_FQ_CTRL2;
+  uint8_t Bytes[sizeof(uint32_t)];
+  struct
+  {
+    uint32_t ENABLE:  8; //!< 0- 7 - When ENABLE[n] is set to 1, the RX FIFO Queue n is enabled. The RX FIFO Queue n cannot be started if not enabled. The abort of an RX FIFO Queue n not started would have no effect
+    uint32_t       : 24; //!< 8-31
+  } Bits;
+} XCAN_RX_FQ_CTRL2_Register;
+XCAN_UNPACKITEM;
+XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_CTRL2_Register, 4);
+
+#define XCAN_RX_FQ_CTRL2_Pos         0
+#define XCAN_RX_FQ_CTRL2_Mask        (0xFFu << XCAN_RX_FQ_CTRL2_Pos)
+#define XCAN_RX_FQ_CTRL2_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_CTRL2_Mask) >> XCAN_RX_FQ_CTRL2_Pos) //!< Get RX FIFO Queue n enabled
+#define XCAN_RX_FQ_CTRL2_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_CTRL2_Pos) & XCAN_RX_FQ_CTRL2_Mask) //!< Set RX FIFO Queue n enabled
+
+//-----------------------------------------------------------------------------
+
 /*! XCAN RX FIFO Queue n Current Address Pointers.
  * RX FIFO Queue 0 Current Address Pointer (Read-Only, Offset: 0x420, Initial value: 0x00000000).
  * RX FIFO Queue 1 Current Address Pointer (Read-Only, Offset: 0x438, Initial value: 0x00000000).
@@ -959,19 +1968,19 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_ADD_PT_Register, 4);
 
 #define XCAN_RX_FQ_ADD_PT_Pos         0
 #define XCAN_RX_FQ_ADD_PT_Mask        (0xFFFFFFFCu << XCAN_RX_FQ_RD_ADD_PT_Pos)
-#define XCAN_RX_FQ_ADD_PT_GET(value)  ((uint32_t)(value) & XCAN_RX_FQ_RD_ADD_PT_Mask) >> XCAN_RX_FQ_RD_ADD_PT_Pos) //!< Get the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
+#define XCAN_RX_FQ_ADD_PT_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_RD_ADD_PT_Mask) >> XCAN_RX_FQ_RD_ADD_PT_Pos) //!< Get the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
 
 
 
 /*! XCAN RX FIFO Queue n link list Start Addresses.
- * RX FIFO Queue 0 link list Start Address (Read-Only, Offset: 0x424, Initial value: 0x00000000).
- * RX FIFO Queue 1 link list Start Address (Read-Only, Offset: 0x43C, Initial value: 0x00000000).
- * RX FIFO Queue 2 link list Start Address (Read-Only, Offset: 0x454, Initial value: 0x00000000).
- * RX FIFO Queue 3 link list Start Address (Read-Only, Offset: 0x46C, Initial value: 0x00000000).
- * RX FIFO Queue 4 link list Start Address (Read-Only, Offset: 0x484, Initial value: 0x00000000).
- * RX FIFO Queue 5 link list Start Address (Read-Only, Offset: 0x49C, Initial value: 0x00000000).
- * RX FIFO Queue 6 link list Start Address (Read-Only, Offset: 0x4B4, Initial value: 0x00000000).
- * RX FIFO Queue 7 link list Start Address (Read-Only, Offset: 0x4CC, Initial value: 0x00000000).
+ * RX FIFO Queue 0 link list Start Address (Read/Write, Offset: 0x424, Initial value: 0x00000000).
+ * RX FIFO Queue 1 link list Start Address (Read/Write, Offset: 0x43C, Initial value: 0x00000000).
+ * RX FIFO Queue 2 link list Start Address (Read/Write, Offset: 0x454, Initial value: 0x00000000).
+ * RX FIFO Queue 3 link list Start Address (Read/Write, Offset: 0x46C, Initial value: 0x00000000).
+ * RX FIFO Queue 4 link list Start Address (Read/Write, Offset: 0x484, Initial value: 0x00000000).
+ * RX FIFO Queue 5 link list Start Address (Read/Write, Offset: 0x49C, Initial value: 0x00000000).
+ * RX FIFO Queue 6 link list Start Address (Read/Write, Offset: 0x4B4, Initial value: 0x00000000).
+ * RX FIFO Queue 7 link list Start Address (Read/Write, Offset: 0x4CC, Initial value: 0x00000000).
  * This register is only accessible in write mode if the RX FIFO Queue n is not busy, see BUSY flag in RX_FQ_STSn register.
  * This register is protected by a register bank CRC defined in CRC_REG register
  */
@@ -989,7 +1998,8 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_START_ADD_Register, 4);
 
 #define XCAN_RX_FQ_ADD_PT_Pos         0
 #define XCAN_RX_FQ_ADD_PT_Mask        (0xFFFFFFFCu << XCAN_RX_FQ_RD_ADD_PT_Pos)
-#define XCAN_RX_FQ_ADD_PT_GET(value)  ((uint32_t)(value) & XCAN_RX_FQ_RD_ADD_PT_Mask) >> XCAN_RX_FQ_RD_ADD_PT_Pos) //!< Get the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
+#define XCAN_RX_FQ_ADD_PT_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_RD_ADD_PT_Mask) >> XCAN_RX_FQ_RD_ADD_PT_Pos) //!< Get the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
+#define XCAN_RX_FQ_ADD_PT_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_RD_ADD_PT_Pos) & XCAN_RX_FQ_RD_ADD_PT_Mask) //!< Set the current RX Header Descriptor address pointer for the RX FIFO Queue 0 in the system memory
 
 
 
@@ -1031,24 +2041,24 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_SIZE_Register, 4);
 
 #define XCAN_RX_FQ_SIZE_MAX_DESC_Pos         0
 #define XCAN_RX_FQ_SIZE_MAX_DESC_Mask        (0x3Fu << XCAN_RX_FQ_SIZE_MAX_DESC_Pos)
-#define XCAN_RX_FQ_SIZE_MAX_DESC_GET(value)  ((uint32_t)(value) & XCAN_RX_FQ_SIZE_MAX_DESC_Mask) >> XCAN_RX_FQ_SIZE_MAX_DESC_Pos) //!< Get the maximum number of descriptors in the RX FIFO Queue link list
-#define XCAN_RX_FQ_SIZE_MAX_DESC_SET(value)  ((uint32_t)(value) << XCAN_RX_FQ_SIZE_MAX_DESC_Pos) & XCAN_RX_FQ_SIZE_MAX_DESC_Mask) //!< Set the maximum number of descriptors in the RX FIFO Queue link list
+#define XCAN_RX_FQ_SIZE_MAX_DESC_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_SIZE_MAX_DESC_Mask) >> XCAN_RX_FQ_SIZE_MAX_DESC_Pos) //!< Get the maximum number of descriptors in the RX FIFO Queue link list
+#define XCAN_RX_FQ_SIZE_MAX_DESC_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_SIZE_MAX_DESC_Pos) & XCAN_RX_FQ_SIZE_MAX_DESC_Mask) //!< Set the maximum number of descriptors in the RX FIFO Queue link list
 #define XCAN_RX_FQ_SIZE_DC_SIZE_Pos          16
 #define XCAN_RX_FQ_SIZE_DC_SIZE_Mask         (0xFFFu << XCAN_RX_FQ_SIZE_DC_SIZE_Pos)
-#define XCAN_RX_FQ_SIZE_DC_SIZE_GET(value)   ((uint32_t)(value) & XCAN_RX_FQ_SIZE_DC_SIZE_Mask) >> XCAN_RX_FQ_SIZE_DC_SIZE_Pos) //!< Get the maximum size of an RX data container for the RX FIFO Queue
-#define XCAN_RX_FQ_SIZE_DC_SIZE_SET(value)   ((uint32_t)(value) << XCAN_RX_FQ_SIZE_DC_SIZE_Pos) & XCAN_RX_FQ_SIZE_DC_SIZE_Mask) //!< Set the maximum size of an RX data container for the RX FIFO Queue
+#define XCAN_RX_FQ_SIZE_DC_SIZE_GET(value)   (((uint32_t)(value) & XCAN_RX_FQ_SIZE_DC_SIZE_Mask) >> XCAN_RX_FQ_SIZE_DC_SIZE_Pos) //!< Get the maximum size of an RX data container for the RX FIFO Queue
+#define XCAN_RX_FQ_SIZE_DC_SIZE_SET(value)   (((uint32_t)(value) << XCAN_RX_FQ_SIZE_DC_SIZE_Pos) & XCAN_RX_FQ_SIZE_DC_SIZE_Mask) //!< Set the maximum size of an RX data container for the RX FIFO Queue
 
 
 
 /*! XCAN RX FIFO Queue n Data Container Start Addresses.
- * RX FIFO Queue 0 Data Container Start Address (Read-Only, Offset: 0x42C, Initial value: 0x00000000).
- * RX FIFO Queue 1 Data Container Start Address (Read-Only, Offset: 0x444, Initial value: 0x00000000).
- * RX FIFO Queue 2 Data Container Start Address (Read-Only, Offset: 0x45C, Initial value: 0x00000000).
- * RX FIFO Queue 3 Data Container Start Address (Read-Only, Offset: 0x474, Initial value: 0x00000000).
- * RX FIFO Queue 4 Data Container Start Address (Read-Only, Offset: 0x48C, Initial value: 0x00000000).
- * RX FIFO Queue 5 Data Container Start Address (Read-Only, Offset: 0x4A4, Initial value: 0x00000000).
- * RX FIFO Queue 6 Data Container Start Address (Read-Only, Offset: 0x4BC, Initial value: 0x00000000).
- * RX FIFO Queue 7 Data Container Start Address (Read-Only, Offset: 0x4D4, Initial value: 0x00000000).
+ * RX FIFO Queue 0 Data Container Start Address (Read/Write, Offset: 0x42C, Initial value: 0x00000000).
+ * RX FIFO Queue 1 Data Container Start Address (Read/Write, Offset: 0x444, Initial value: 0x00000000).
+ * RX FIFO Queue 2 Data Container Start Address (Read/Write, Offset: 0x45C, Initial value: 0x00000000).
+ * RX FIFO Queue 3 Data Container Start Address (Read/Write, Offset: 0x474, Initial value: 0x00000000).
+ * RX FIFO Queue 4 Data Container Start Address (Read/Write, Offset: 0x48C, Initial value: 0x00000000).
+ * RX FIFO Queue 5 Data Container Start Address (Read/Write, Offset: 0x4A4, Initial value: 0x00000000).
+ * RX FIFO Queue 6 Data Container Start Address (Read/Write, Offset: 0x4BC, Initial value: 0x00000000).
+ * RX FIFO Queue 7 Data Container Start Address (Read/Write, Offset: 0x4D4, Initial value: 0x00000000).
  * This register is accessible in write mode if the RX FIFO Queue n is not busy, see BUSY flag in RX_FQ_STSn register.
  * This register is protected by a register bank CRC defined in CRC_REG register. This register is used only in Continuous Mode
  */
@@ -1066,8 +2076,8 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_DC_START_ADD_Register, 4);
 
 #define XCAN_RX_FQ_DC_START_ADD_Pos         0
 #define XCAN_RX_FQ_DC_START_ADD_Mask        (0xFFFFFFFCu << XCAN_RX_FQ_DC_START_ADD_Pos)
-#define XCAN_RX_FQ_DC_START_ADD_GET(value)  ((uint32_t)(value) & XCAN_RX_FQ_DC_START_ADD_Mask) >> XCAN_RX_FQ_DC_START_ADD_Pos) //!< Get 
-#define XCAN_RX_FQ_DC_START_ADD_SET(value)  ((uint32_t)(value) << XCAN_RX_FQ_DC_START_ADD_Pos) & XCAN_RX_FQ_DC_START_ADD_Mask) //!< Set 
+#define XCAN_RX_FQ_DC_START_ADD_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_DC_START_ADD_Mask) >> XCAN_RX_FQ_DC_START_ADD_Pos) //!< Get 
+#define XCAN_RX_FQ_DC_START_ADD_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_DC_START_ADD_Pos) & XCAN_RX_FQ_DC_START_ADD_Mask) //!< Set 
 
 
 
@@ -1098,8 +2108,8 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_RD_ADD_PT_Register, 4);
 
 #define XCAN_RX_FQ_RD_ADD_PT_Pos         0
 #define XCAN_RX_FQ_RD_ADD_PT_Mask        (0xFFFFFFFCu << XCAN_RX_FQ_RD_ADD_PT_Pos)
-#define XCAN_RX_FQ_RD_ADD_PT_GET(value)  ((uint32_t)(value) & XCAN_RX_FQ_RD_ADD_PT_Mask) >> XCAN_RX_FQ_RD_ADD_PT_Pos) //!< Get the Data Read Address of the RX message being read to the MH
-#define XCAN_RX_FQ_RD_ADD_PT_SET(value)  ((uint32_t)(value) << XCAN_RX_FQ_RD_ADD_PT_Pos) & XCAN_RX_FQ_RD_ADD_PT_Mask) //!< Set the Data Read Address of the RX message being read to the MH
+#define XCAN_RX_FQ_RD_ADD_PT_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_RD_ADD_PT_Mask) >> XCAN_RX_FQ_RD_ADD_PT_Pos) //!< Get the Data Read Address of the RX message being read to the MH
+#define XCAN_RX_FQ_RD_ADD_PT_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_RD_ADD_PT_Pos) & XCAN_RX_FQ_RD_ADD_PT_Mask) //!< Set the Data Read Address of the RX message being read to the MH
 
 //-----------------------------------------------------------------------------
 
@@ -1136,17 +2146,17 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FILTER_CTRL0_Register, 4);
 
 #define XCAN_TX_FILTER_CTRL0_COMB_Pos           0
 #define XCAN_TX_FILTER_CTRL0_COMB_Mask          (0xFFu << XCAN_TX_FILTER_CTRL0_COMB_Pos)
-#define XCAN_TX_FILTER_CTRL0_COMB_GET(value)    ((uint32_t)(value) & XCAN_TX_FILTER_CTRL0_COMB_Mask) >> XCAN_TX_FILTER_CTRL0_COMB_Pos) //!< Get the comparison attached to the reference values
-#define XCAN_TX_FILTER_CTRL0_COMB_SET(value)    ((uint32_t)(value) << XCAN_TX_FILTER_CTRL0_COMB_Pos) & XCAN_TX_FILTER_CTRL0_COMB_Mask) //!< Set the comparison attached to the reference values
+#define XCAN_TX_FILTER_CTRL0_COMB_GET(value)    (((uint32_t)(value) & XCAN_TX_FILTER_CTRL0_COMB_Mask) >> XCAN_TX_FILTER_CTRL0_COMB_Pos) //!< Get the comparison attached to the reference values
+#define XCAN_TX_FILTER_CTRL0_COMB_SET(value)    (((uint32_t)(value) << XCAN_TX_FILTER_CTRL0_COMB_Pos) & XCAN_TX_FILTER_CTRL0_COMB_Mask) //!< Set the comparison attached to the reference values
 #define XCAN_TX_FILTER_CTRL0_MASK_Pos           8
 #define XCAN_TX_FILTER_CTRL0_MASK_Mask          (0xFFu << XCAN_TX_FILTER_CTRL0_MASK_Pos)
-#define XCAN_TX_FILTER_CTRL0_MASK_GET(value)    ((uint32_t)(value) & XCAN_TX_FILTER_CTRL0_MASK_Mask) >> XCAN_TX_FILTER_CTRL0_MASK_Pos) //!< Get the reference values REF_VAL0/1 or REF_VAL2/3 are combined to define a value and a mask
-#define XCAN_TX_FILTER_CTRL0_MASK_SET(value)    ((uint32_t)(value) << XCAN_TX_FILTER_CTRL0_MASK_Pos) & XCAN_TX_FILTER_CTRL0_MASK_Mask) //!< Set the reference values REF_VAL0/1 or REF_VAL2/3 are combined to define a value and a mask
-#define XCAN_RX_FILTER_CTRL0_ACCEPT_ON_MATCH    (1u <<  16) //!< Accept on match
-#define XCAN_RX_FILTER_CTRL0_REJECT_CANFD_MSG   (1u <<  17) //!< Reject CAN-FD messages
-#define XCAN_RX_FILTER_CTRL0_REJECT_CAN20_MSG   (1u <<  18) //!< Reject Classic CAN messages
-#define XCAN_RX_FILTER_CTRL0_ENABLE_TX_FILTER   (1u <<  19) //!< Enable the TX filter for all TX message to be sent
-#define XCAN_RX_FILTER_CTRL0_ENABLE_FILTER_INT  (1u <<  20) //!< Enable the interrupt tx_filter_irq to be triggered
+#define XCAN_TX_FILTER_CTRL0_MASK_GET(value)    (((uint32_t)(value) & XCAN_TX_FILTER_CTRL0_MASK_Mask) >> XCAN_TX_FILTER_CTRL0_MASK_Pos) //!< Get the reference values REF_VAL0/1 or REF_VAL2/3 are combined to define a value and a mask
+#define XCAN_TX_FILTER_CTRL0_MASK_SET(value)    (((uint32_t)(value) << XCAN_TX_FILTER_CTRL0_MASK_Pos) & XCAN_TX_FILTER_CTRL0_MASK_Mask) //!< Set the reference values REF_VAL0/1 or REF_VAL2/3 are combined to define a value and a mask
+#define XCAN_RX_FILTER_CTRL0_ACCEPT_ON_MATCH    (1u << 16) //!< Accept on match
+#define XCAN_RX_FILTER_CTRL0_REJECT_CANFD_MSG   (1u << 17) //!< Reject CAN-FD messages
+#define XCAN_RX_FILTER_CTRL0_REJECT_CAN20_MSG   (1u << 18) //!< Reject Classic CAN messages
+#define XCAN_RX_FILTER_CTRL0_ENABLE_TX_FILTER   (1u << 19) //!< Enable the TX filter for all TX message to be sent
+#define XCAN_RX_FILTER_CTRL0_ENABLE_FILTER_INT  (1u << 20) //!< Enable the interrupt tx_filter_irq to be triggered
 
 //-----------------------------------------------------------------------------
 
@@ -1184,12 +2194,12 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FILTER_CTRL1_Register, 4);
 
 #define XCAN_TX_FILTER_CTRL1_VALID_Pos         0
 #define XCAN_TX_FILTER_CTRL1_VALID_Mask        (0xFFFFu << XCAN_TX_FILTER_CTRL1_VALID_Pos)
-#define XCAN_TX_FILTER_CTRL1_VALID_GET(value)  ((uint32_t)(value) & XCAN_TX_FILTER_CTRL1_VALID_Mask) >> XCAN_TX_FILTER_CTRL1_VALID_Pos) //!< Get the reference value defined for the TX filter n is valid
-#define XCAN_TX_FILTER_CTRL1_VALID_SET(value)  ((uint32_t)(value) << XCAN_TX_FILTER_CTRL1_VALID_Pos) & XCAN_TX_FILTER_CTRL1_VALID_Mask) //!< Set the reference value defined for the TX filter n is valid
+#define XCAN_TX_FILTER_CTRL1_VALID_GET(value)  (((uint32_t)(value) & XCAN_TX_FILTER_CTRL1_VALID_Mask) >> XCAN_TX_FILTER_CTRL1_VALID_Pos) //!< Get the reference value defined for the TX filter n is valid
+#define XCAN_TX_FILTER_CTRL1_VALID_SET(value)  (((uint32_t)(value) << XCAN_TX_FILTER_CTRL1_VALID_Pos) & XCAN_TX_FILTER_CTRL1_VALID_Mask) //!< Set the reference value defined for the TX filter n is valid
 #define XCAN_TX_FILTER_CTRL1_FIELD_Pos         16
 #define XCAN_TX_FILTER_CTRL1_FIELD_Mask        (0xFFFFu << XCAN_TX_FILTER_CTRL1_FIELD_Pos)
-#define XCAN_TX_FILTER_CTRL1_FIELD_GET(value)  ((uint32_t)(value) & XCAN_TX_FILTER_CTRL1_FIELD_Mask) >> XCAN_TX_FILTER_CTRL1_FIELD_Pos) //!< Get the TX filter element n is considering SDT
-#define XCAN_TX_FILTER_CTRL1_FIELD_SET(value)  ((uint32_t)(value) << XCAN_TX_FILTER_CTRL1_FIELD_Pos) & XCAN_TX_FILTER_CTRL1_FIELD_Mask) //!< Set the TX filter element n is considering SDT
+#define XCAN_TX_FILTER_CTRL1_FIELD_GET(value)  (((uint32_t)(value) & XCAN_TX_FILTER_CTRL1_FIELD_Mask) >> XCAN_TX_FILTER_CTRL1_FIELD_Pos) //!< Get the TX filter element n is considering SDT
+#define XCAN_TX_FILTER_CTRL1_FIELD_SET(value)  (((uint32_t)(value) << XCAN_TX_FILTER_CTRL1_FIELD_Pos) & XCAN_TX_FILTER_CTRL1_FIELD_Mask) //!< Set the TX filter element n is considering SDT
 
 //-----------------------------------------------------------------------------
 
@@ -1219,16 +2229,16 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FILTER_REFVAL_Register, 4);
 
 #define XCAN_TX_FILTER_REFVAL0_Pos         0
 #define XCAN_TX_FILTER_REFVAL0_Mask        (0xFFu << XCAN_TX_FILTER_REFVAL0_Pos)
-#define XCAN_TX_FILTER_REFVAL0_GET(value)  ((uint32_t)(value) & XCAN_TX_FILTER_REFVAL0_Mask) >> XCAN_TX_FILTER_REFVAL0_Pos) //!< Get the reference value 0
-#define XCAN_TX_FILTER_REFVAL0_SET(value)  ((uint32_t)(value) << XCAN_TX_FILTER_REFVAL0_Pos) & XCAN_TX_FILTER_REFVAL0_Mask) //!< Set the reference value 0
+#define XCAN_TX_FILTER_REFVAL0_GET(value)  (((uint32_t)(value) & XCAN_TX_FILTER_REFVAL0_Mask) >> XCAN_TX_FILTER_REFVAL0_Pos) //!< Get the reference value 0
+#define XCAN_TX_FILTER_REFVAL0_SET(value)  (((uint32_t)(value) << XCAN_TX_FILTER_REFVAL0_Pos) & XCAN_TX_FILTER_REFVAL0_Mask) //!< Set the reference value 0
 #define XCAN_TX_FILTER_REFVAL1_Pos         8
 #define XCAN_TX_FILTER_REFVAL1_Mask        (0xFFu << XCAN_TX_FILTER_REFVAL1_Pos)
-#define XCAN_TX_FILTER_REFVAL1_GET(value)  ((uint32_t)(value) & XCAN_TX_FILTER_REFVAL1_Mask) >> XCAN_TX_FILTER_REFVAL1_Pos) //!< Get the reference value 1
-#define XCAN_TX_FILTER_REFVAL1_SET(value)  ((uint32_t)(value) << XCAN_TX_FILTER_REFVAL1_Pos) & XCAN_TX_FILTER_REFVAL1_Mask) //!< Set the reference value 1
+#define XCAN_TX_FILTER_REFVAL1_GET(value)  (((uint32_t)(value) & XCAN_TX_FILTER_REFVAL1_Mask) >> XCAN_TX_FILTER_REFVAL1_Pos) //!< Get the reference value 1
+#define XCAN_TX_FILTER_REFVAL1_SET(value)  (((uint32_t)(value) << XCAN_TX_FILTER_REFVAL1_Pos) & XCAN_TX_FILTER_REFVAL1_Mask) //!< Set the reference value 1
 #define XCAN_TX_FILTER_REFVAL2_Pos         16
 #define XCAN_TX_FILTER_REFVAL2_Mask        (0xFFu << XCAN_TX_FILTER_REFVAL2_Pos)
-#define XCAN_TX_FILTER_REFVAL2_GET(value)  ((uint32_t)(value) & XCAN_TX_FILTER_REFVAL2_Mask) >> XCAN_TX_FILTER_REFVAL2_Pos) //!< Get the reference value 2
-#define XCAN_TX_FILTER_REFVAL2_SET(value)  ((uint32_t)(value) << XCAN_TX_FILTER_REFVAL2_Pos) & XCAN_TX_FILTER_REFVAL2_Mask) //!< Set the reference value 2
+#define XCAN_TX_FILTER_REFVAL2_GET(value)  (((uint32_t)(value) & XCAN_TX_FILTER_REFVAL2_Mask) >> XCAN_TX_FILTER_REFVAL2_Pos) //!< Get the reference value 2
+#define XCAN_TX_FILTER_REFVAL2_SET(value)  (((uint32_t)(value) << XCAN_TX_FILTER_REFVAL2_Pos) & XCAN_TX_FILTER_REFVAL2_Mask) //!< Set the reference value 2
 #define XCAN_TX_FILTER_REFVAL3_Pos         24
 #define XCAN_TX_FILTER_REFVAL3_Mask        (0xFFu << XCAN_TX_FILTER_REFVAL3_Pos)
 #define XCAN_TX_FILTER_REFVAL3_GET(value)  ((uint32_t)(value) & XCAN_TX_FILTER_REFVAL3_Mask) >> XCAN_TX_FILTER_REFVAL3_Pos) //!< Get the reference value 3
@@ -1278,18 +2288,18 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FILTER_CTRL_Register, 4);
 
 #define XCAN_RX_FILTER_CTRL_NB_FE_Pos                   0
 #define XCAN_RX_FILTER_CTRL_NB_FE_Mask                  (0xFFu << XCAN_RX_FILTER_CTRL_NB_FE_Pos)
-#define XCAN_RX_FILTER_CTRL_NB_FE_GET(value)            ((uint32_t)(value) & XCAN_RX_FILTER_CTRL_NB_FE_Mask) >> XCAN_RX_FILTER_CTRL_NB_FE_Pos) //!< Get the number of RX filter elements that are defined in the local memory
-#define XCAN_RX_FILTER_CTRL_NB_FE_SET(value)            ((uint32_t)(value) << XCAN_RX_FILTER_CTRL_NB_FE_Pos) & XCAN_RX_FILTER_CTRL_NB_FE_Mask) //!< Set the number of RX filter elements that are defined in the local memory
+#define XCAN_RX_FILTER_CTRL_NB_FE_GET(value)            (((uint32_t)(value) & XCAN_RX_FILTER_CTRL_NB_FE_Mask) >> XCAN_RX_FILTER_CTRL_NB_FE_Pos) //!< Get the number of RX filter elements that are defined in the local memory
+#define XCAN_RX_FILTER_CTRL_NB_FE_SET(value)            (((uint32_t)(value) << XCAN_RX_FILTER_CTRL_NB_FE_Pos) & XCAN_RX_FILTER_CTRL_NB_FE_Mask) //!< Set the number of RX filter elements that are defined in the local memory
 #define XCAN_RX_FILTER_CTRL_THRESHOLD_Pos               8
 #define XCAN_RX_FILTER_CTRL_THRESHOLD_Mask              (0x1Fu << XCAN_RX_FILTER_CTRL_THRESHOLD_Pos)
-#define XCAN_RX_FILTER_CTRL_THRESHOLD_GET(value)        ((uint32_t)(value) & XCAN_RX_FILTER_CTRL_THRESHOLD_Mask) >> XCAN_RX_FILTER_CTRL_THRESHOLD_Pos) //!< Get the latest point in time to wait for the result of the RX filtering process
-#define XCAN_RX_FILTER_CTRL_THRESHOLD_SET(value)        ((uint32_t)(value) << XCAN_RX_FILTER_CTRL_THRESHOLD_Pos) & XCAN_RX_FILTER_CTRL_THRESHOLD_Mask) //!< Set the latest point in time to wait for the result of the RX filtering process
+#define XCAN_RX_FILTER_CTRL_THRESHOLD_GET(value)        (((uint32_t)(value) & XCAN_RX_FILTER_CTRL_THRESHOLD_Mask) >> XCAN_RX_FILTER_CTRL_THRESHOLD_Pos) //!< Get the latest point in time to wait for the result of the RX filtering process
+#define XCAN_RX_FILTER_CTRL_THRESHOLD_SET(value)        (((uint32_t)(value) << XCAN_RX_FILTER_CTRL_THRESHOLD_Pos) & XCAN_RX_FILTER_CTRL_THRESHOLD_Mask) //!< Set the latest point in time to wait for the result of the RX filtering process
 #define XCAN_RX_FILTER_CTRL_ANMF_FQ_Pos                 16
 #define XCAN_RX_FILTER_CTRL_ANMF_FQ_Mask                (0x7u << XCAN_RX_FILTER_CTRL_ANMF_FQ_Pos)
-#define XCAN_RX_FILTER_CTRL_ANMF_FQ_GET(value)          ((uint32_t)(value) & XCAN_RX_FILTER_CTRL_ANMF_FQ_Mask) >> XCAN_RX_FILTER_CTRL_ANMF_FQ_Pos) //!< Get the default RX FIFO Queue number
-#define XCAN_RX_FILTER_CTRL_ANMF_FQ_SET(value)          ((uint32_t)(value) << XCAN_RX_FILTER_CTRL_ANMF_FQ_Pos) & XCAN_RX_FILTER_CTRL_ANMF_FQ_Mask) //!< Set the default RX FIFO Queue number
-#define XCAN_RX_FILTER_CTRL_ACCEPT_NON_MATCHING_FRAMES  (1u <<  20) //!< Non matching frames are accepted
-#define XCAN_RX_FILTER_CTRL_ROUTE_NOT_FILTERED_IN_TIME  (1u <<  21) //!< Frames not filtered in time and over the DMA RX FIFO level defined in THRESHOLD
+#define XCAN_RX_FILTER_CTRL_ANMF_FQ_GET(value)          (((uint32_t)(value) & XCAN_RX_FILTER_CTRL_ANMF_FQ_Mask) >> XCAN_RX_FILTER_CTRL_ANMF_FQ_Pos) //!< Get the default RX FIFO Queue number
+#define XCAN_RX_FILTER_CTRL_ANMF_FQ_SET(value)          (((uint32_t)(value) << XCAN_RX_FILTER_CTRL_ANMF_FQ_Pos) & XCAN_RX_FILTER_CTRL_ANMF_FQ_Mask) //!< Set the default RX FIFO Queue number
+#define XCAN_RX_FILTER_CTRL_ACCEPT_NON_MATCHING_FRAMES  (1u << 20) //!< Non matching frames are accepted
+#define XCAN_RX_FILTER_CTRL_ROUTE_NOT_FILTERED_IN_TIME  (1u << 21) //!< Frames not filtered in time and over the DMA RX FIFO level defined in THRESHOLD
 
 //-----------------------------------------------------------------------------
 
@@ -1312,12 +2322,12 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FQ_INT_STS_Register, 4);
 
 #define XCAN_TX_FQ_INT_STS_RECEIVED_Pos         0
 #define XCAN_TX_FQ_INT_STS_RECEIVED_Mask        (0xFFu << XCAN_TX_FQ_INT_STS_RECEIVED_Pos)
-#define XCAN_TX_FQ_INT_STS_RECEIVED_GET(value)  ((uint32_t)(value) & XCAN_TX_FQ_INT_STS_RECEIVED_Mask) >> XCAN_TX_FQ_INT_STS_RECEIVED_Pos) //!< Get TX message was sent from the TX FIFO Queue n
-#define XCAN_TX_FQ_INT_STS_RECEIVED_SET(value)  ((uint32_t)(value) << XCAN_TX_FQ_INT_STS_RECEIVED_Pos) & XCAN_TX_FQ_INT_STS_RECEIVED_Mask) //!< Set TX message was sent from the TX FIFO Queue n
+#define XCAN_TX_FQ_INT_STS_RECEIVED_GET(value)  (((uint32_t)(value) & XCAN_TX_FQ_INT_STS_RECEIVED_Mask) >> XCAN_TX_FQ_INT_STS_RECEIVED_Pos) //!< Get TX message was sent from the TX FIFO Queue n
+#define XCAN_TX_FQ_INT_STS_RECEIVED_SET(value)  (((uint32_t)(value) << XCAN_TX_FQ_INT_STS_RECEIVED_Pos) & XCAN_TX_FQ_INT_STS_RECEIVED_Mask) //!< Set TX message was sent from the TX FIFO Queue n
 #define XCAN_TX_FQ_INT_STS_UNVALID_Pos          16
 #define XCAN_TX_FQ_INT_STS_UNVALID_Mask         (0xFFu << XCAN_TX_FQ_INT_STS_UNVALID_Pos)
-#define XCAN_TX_FQ_INT_STS_UNVALID_GET(value)   ((uint32_t)(value) & XCAN_TX_FQ_INT_STS_UNVALID_Mask) >> XCAN_TX_FQ_INT_STS_UNVALID_Pos) //!< Get TX FIFO Queue n loads TX descriptor
-#define XCAN_TX_FQ_INT_STS_UNVALID_SET(value)   ((uint32_t)(value) << XCAN_TX_FQ_INT_STS_UNVALID_Pos) & XCAN_TX_FQ_INT_STS_UNVALID_Mask) //!< Set TX FIFO Queue n loads TX descriptor
+#define XCAN_TX_FQ_INT_STS_UNVALID_GET(value)   (((uint32_t)(value) & XCAN_TX_FQ_INT_STS_UNVALID_Mask) >> XCAN_TX_FQ_INT_STS_UNVALID_Pos) //!< Get TX FIFO Queue n loads TX descriptor
+#define XCAN_TX_FQ_INT_STS_UNVALID_SET(value)   (((uint32_t)(value) << XCAN_TX_FQ_INT_STS_UNVALID_Pos) & XCAN_TX_FQ_INT_STS_UNVALID_Mask) //!< Set TX FIFO Queue n loads TX descriptor
 
 //-----------------------------------------------------------------------------
 
@@ -1340,12 +2350,12 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_RX_FQ_INT_STS_Register, 4);
 
 #define XCAN_RX_FQ_INT_STS_RECEIVED_Pos         0
 #define XCAN_RX_FQ_INT_STS_RECEIVED_Mask        (0xFFu << XCAN_RX_FQ_INT_STS_RECEIVED_Pos)
-#define XCAN_RX_FQ_INT_STS_RECEIVED_GET(value)  ((uint32_t)(value) & XCAN_RX_FQ_INT_STS_RECEIVED_Mask) >> XCAN_RX_FQ_INT_STS_RECEIVED_Pos) //!< Get RX message was received in the RX FIFO Queue n
-#define XCAN_RX_FQ_INT_STS_RECEIVED_SET(value)  ((uint32_t)(value) << XCAN_RX_FQ_INT_STS_RECEIVED_Pos) & XCAN_RX_FQ_INT_STS_RECEIVED_Mask) //!< Set RX message was received in the RX FIFO Queue n
+#define XCAN_RX_FQ_INT_STS_RECEIVED_GET(value)  (((uint32_t)(value) & XCAN_RX_FQ_INT_STS_RECEIVED_Mask) >> XCAN_RX_FQ_INT_STS_RECEIVED_Pos) //!< Get RX message was received in the RX FIFO Queue n
+#define XCAN_RX_FQ_INT_STS_RECEIVED_SET(value)  (((uint32_t)(value) << XCAN_RX_FQ_INT_STS_RECEIVED_Pos) & XCAN_RX_FQ_INT_STS_RECEIVED_Mask) //!< Set RX message was received in the RX FIFO Queue n
 #define XCAN_RX_FQ_INT_STS_UNVALID_Pos          16
 #define XCAN_RX_FQ_INT_STS_UNVALID_Mask         (0xFFu << XCAN_RX_FQ_INT_STS_UNVALID_Pos)
-#define XCAN_RX_FQ_INT_STS_UNVALID_GET(value)   ((uint32_t)(value) & XCAN_RX_FQ_INT_STS_UNVALID_Mask) >> XCAN_RX_FQ_INT_STS_UNVALID_Pos) //!< Get RX FIFO Queue n loads RX descriptor
-#define XCAN_RX_FQ_INT_STS_UNVALID_SET(value)   ((uint32_t)(value) << XCAN_RX_FQ_INT_STS_UNVALID_Pos) & XCAN_RX_FQ_INT_STS_UNVALID_Mask) //!< Set RX FIFO Queue n loads RX descriptor
+#define XCAN_RX_FQ_INT_STS_UNVALID_GET(value)   (((uint32_t)(value) & XCAN_RX_FQ_INT_STS_UNVALID_Mask) >> XCAN_RX_FQ_INT_STS_UNVALID_Pos) //!< Get RX FIFO Queue n loads RX descriptor
+#define XCAN_RX_FQ_INT_STS_UNVALID_SET(value)   (((uint32_t)(value) << XCAN_RX_FQ_INT_STS_UNVALID_Pos) & XCAN_RX_FQ_INT_STS_UNVALID_Mask) //!< Set RX FIFO Queue n loads RX descriptor
 
 //-----------------------------------------------------------------------------
 
@@ -1361,8 +2371,8 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_INT_STS0_Register, 4);
 
 #define XCAN_TX_PQ_INT_STS0_Pos         0
 #define XCAN_TX_PQ_INT_STS0_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_INT_STS0_Pos)
-#define XCAN_TX_PQ_INT_STS0_GET(value)  ((uint32_t)(value) & XCAN_TX_PQ_INT_STS0_Mask) >> XCAN_TX_PQ_INT_STS0_Pos) //!< Get TX Priority Queue slot n message sent
-#define XCAN_TX_PQ_INT_STS0_SET(value)  ((uint32_t)(value) << XCAN_TX_PQ_INT_STS0_Pos) & XCAN_TX_PQ_INT_STS0_Mask) //!< Set TX Priority Queue slot n message sent
+#define XCAN_TX_PQ_INT_STS0_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_INT_STS0_Mask) >> XCAN_TX_PQ_INT_STS0_Pos) //!< Get TX Priority Queue slot n message sent
+#define XCAN_TX_PQ_INT_STS0_SET(value)  (((uint32_t)(value) << XCAN_TX_PQ_INT_STS0_Pos) & XCAN_TX_PQ_INT_STS0_Mask) //!< Set TX Priority Queue slot n message sent
 
 //-----------------------------------------------------------------------------
 
@@ -1381,8 +2391,8 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_PQ_INT_STS1_Register, 4);
 
 #define XCAN_TX_PQ_INT_STS1_Pos         0
 #define XCAN_TX_PQ_INT_STS1_Mask        (0xFFFFFFFFu << XCAN_TX_PQ_INT_STS1_Pos)
-#define XCAN_TX_PQ_INT_STS1_GET(value)  ((uint32_t)(value) & XCAN_TX_PQ_INT_STS1_Mask) >> XCAN_TX_PQ_INT_STS1_Pos) //!< Get an invalid RX descriptor slot n is detected while running the TX Priority Queue
-#define XCAN_TX_PQ_INT_STS1_SET(value)  ((uint32_t)(value) << XCAN_TX_PQ_INT_STS1_Pos) & XCAN_TX_PQ_INT_STS1_Mask) //!< Set an invalid RX descriptor slot n is detected while running the TX Priority Queue
+#define XCAN_TX_PQ_INT_STS1_GET(value)  (((uint32_t)(value) & XCAN_TX_PQ_INT_STS1_Mask) >> XCAN_TX_PQ_INT_STS1_Pos) //!< Get an invalid RX descriptor slot n is detected while running the TX Priority Queue
+#define XCAN_TX_PQ_INT_STS1_SET(value)  (((uint32_t)(value) << XCAN_TX_PQ_INT_STS1_Pos) & XCAN_TX_PQ_INT_STS1_Mask) //!< Set an invalid RX descriptor slot n is detected while running the TX Priority Queue
 
 //-----------------------------------------------------------------------------
 
@@ -1448,11 +2458,11 @@ typedef union __XCAN_PACKED__ XCAN_ERR_INT_STS_Register
 XCAN_UNPACKITEM;
 XCAN_CONTROL_ITEM_SIZE(XCAN_ERR_INT_STS_Register, 4);
 
-#define XCAN_ERR_INT_STS_DP_TX_ACK_DO_ERR   (1u <<  0) //!< A TX acknowledge data overflow is detected
-#define XCAN_ERR_INT_STS_DP_RX_FIFO_DO_ERR  (1u <<  1) //!< A RX DMA FIFO overflow issue is detected
-#define XCAN_ERR_INT_STS_DP_RX_ACK_DO_ERR   (1u <<  2) //!< A RX acknowledge data overflow is detected
-#define XCAN_ERR_INT_STS_DP_TX_SEQ_ERR      (1u <<  3) //!< A TX sequence issue is detected
-#define XCAN_ERR_INT_STS_DP_RX_SEQ_ERR      (1u <<  4) //!< A RX sequence issue is detected
+#define XCAN_ERR_INT_STS_DP_TX_ACK_DO_ERR   (1u << 0) //!< A TX acknowledge data overflow is detected
+#define XCAN_ERR_INT_STS_DP_RX_FIFO_DO_ERR  (1u << 1) //!< A RX DMA FIFO overflow issue is detected
+#define XCAN_ERR_INT_STS_DP_RX_ACK_DO_ERR   (1u << 2) //!< A RX acknowledge data overflow is detected
+#define XCAN_ERR_INT_STS_DP_TX_SEQ_ERR      (1u << 3) //!< A TX sequence issue is detected
+#define XCAN_ERR_INT_STS_DP_RX_SEQ_ERR      (1u << 4) //!< A RX sequence issue is detected
 
 #define XCAN_ERR_INT_STATUS_FLAGS  ( XCAN_ERR_INT_STS_DP_TX_ACK_DO_ERR | XCAN_ERR_INT_STS_DP_RX_FIFO_DO_ERR | XCAN_ERR_INT_STS_DP_RX_ACK_DO_ERR | \
                                      XCAN_ERR_INT_STS_DP_TX_SEQ_ERR    | XCAN_ERR_INT_STS_DP_RX_SEQ_ERR )                                           //!< All error events status flags
@@ -1593,16 +2603,16 @@ typedef enum
 
 #define XCAN_AXI_ERR_INFO_DMA_ID_Pos           0
 #define XCAN_AXI_ERR_INFO_DMA_ID_Mask          (0x3u << XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos)
-#define XCAN_AXI_ERR_INFO_DMA_ID_GET(value)    ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_FQN_PQSN_Mask) >> XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos) //!< Get the AXI ID used when a write or read error response is detected
+#define XCAN_AXI_ERR_INFO_DMA_ID_GET(value)    (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_FQN_PQSN_Mask) >> XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos) //!< Get the AXI ID used when a write or read error response is detected
 #define XCAN_AXI_ERR_INFO_DMA_RESP_Pos         2
 #define XCAN_AXI_ERR_INFO_DMA_RESP_Mask        (0x3u << XCAN_DESC_ERR_INFO1_IN_Pos)
-#define XCAN_AXI_ERR_INFO_DMA_RESP_GET(value)  ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_IN_Mask) >> XCAN_DESC_ERR_INFO1_IN_Pos) //!< Get DMA_AXI error
+#define XCAN_AXI_ERR_INFO_DMA_RESP_GET(value)  (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_IN_Mask) >> XCAN_DESC_ERR_INFO1_IN_Pos) //!< Get DMA_AXI error
 #define XCAN_AXI_ERR_INFO_MEM_ID_Pos           4
 #define XCAN_AXI_ERR_INFO_MEM_ID_Mask          (0x3u << XCAN_DESC_ERR_INFO1_RC_Pos)
-#define XCAN_AXI_ERR_INFO_MEM_ID_GET(value)    ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_RC_Mask) >> XCAN_DESC_ERR_INFO1_RC_Pos) //!< Get the AXI ID used when a write or read error response is detected
+#define XCAN_AXI_ERR_INFO_MEM_ID_GET(value)    (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_RC_Mask) >> XCAN_DESC_ERR_INFO1_RC_Pos) //!< Get the AXI ID used when a write or read error response is detected
 #define XCAN_AXI_ERR_INFO_MEM_RESP_Pos         6
 #define XCAN_AXI_ERR_INFO_MEM_RESP_Mask        (0x3u << XCAN_DESC_ERR_INFO1_CRC_Pos)
-#define XCAN_AXI_ERR_INFO_MEM_RESP_GET(value)  ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_CRC_Mask) >> XCAN_DESC_ERR_INFO1_CRC_Pos) //!< Get MEM_AXI error
+#define XCAN_AXI_ERR_INFO_MEM_RESP_GET(value)  (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_CRC_Mask) >> XCAN_DESC_ERR_INFO1_CRC_Pos) //!< Get MEM_AXI error
 
 //-----------------------------------------------------------------------------
 
@@ -1620,7 +2630,7 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_DESC_ERR_INFO0_Register, 4);
 
 #define XCAN_DESC_ERR_INFO0_ADD_Pos         0
 #define XCAN_DESC_ERR_INFO0_ADD_Mask        (0xFFFFFFFFu << XCAN_DESC_ERR_INFO0_ADD_Pos)
-#define XCAN_DESC_ERR_INFO0_ADD_GET(value)  ((uint32_t)(value) & XCAN_DESC_ERR_INFO0_ADD_Mask) >> XCAN_DESC_ERR_INFO0_ADD_Pos) //!< Get Descriptor address being used when the error is detected
+#define XCAN_DESC_ERR_INFO0_ADD_GET(value)  (((uint32_t)(value) & XCAN_DESC_ERR_INFO0_ADD_Mask) >> XCAN_DESC_ERR_INFO0_ADD_Pos) //!< Get Descriptor address being used when the error is detected
 
 //-----------------------------------------------------------------------------
 
@@ -1649,20 +2659,20 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_DESC_ERR_INFO1_Register, 4);
 
 #define XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos                0
 #define XCAN_DESC_ERR_INFO1_FQN_PQSN_Mask               (0x1Fu << XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos)
-#define XCAN_DESC_ERR_INFO1_FQN_PQSN_GET(value)         ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_FQN_PQSN_Mask) >> XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos) //!< Get the information regarding the RX/TX FIFO Queue number or the TX Priority Queue slot having an issue
+#define XCAN_DESC_ERR_INFO1_FQN_PQSN_GET(value)         (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_FQN_PQSN_Mask) >> XCAN_DESC_ERR_INFO1_FQN_PQSN_Pos) //!< Get the information regarding the RX/TX FIFO Queue number or the TX Priority Queue slot having an issue
 #define XCAN_DESC_ERR_INFO1_IN_Pos                      5
 #define XCAN_DESC_ERR_INFO1_IN_Mask                     (0x7u << XCAN_DESC_ERR_INFO1_IN_Pos)
-#define XCAN_DESC_ERR_INFO1_IN_GET(value)               ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_IN_Mask) >> XCAN_DESC_ERR_INFO1_IN_Pos) //!< Get the instance number defined in RX or TX descriptor logged in
+#define XCAN_DESC_ERR_INFO1_IN_GET(value)               (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_IN_Mask) >> XCAN_DESC_ERR_INFO1_IN_Pos) //!< Get the instance number defined in RX or TX descriptor logged in
 #define XCAN_DESC_ERR_INFO1_PQ_TX_PRIORITY_QUEUE        (1u << 8) //!< TX Priority queue is impacted
 #define XCAN_DESC_ERR_INFO1_PQ_TX_FIFO_QUEUE            (0u << 8) //!< TX FIFO queue is impacted
 #define XCAN_DESC_ERR_INFO1_RC_Pos                      9
 #define XCAN_DESC_ERR_INFO1_RC_Mask                     (0x1Fu << XCAN_DESC_ERR_INFO1_RC_Pos)
-#define XCAN_DESC_ERR_INFO1_RC_GET(value)               ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_RC_Mask) >> XCAN_DESC_ERR_INFO1_RC_Pos) //!< Get the information regarding the Rolling Counter defined in RX or TX descriptor impacted
+#define XCAN_DESC_ERR_INFO1_RC_GET(value)               (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_RC_Mask) >> XCAN_DESC_ERR_INFO1_RC_Pos) //!< Get the information regarding the Rolling Counter defined in RX or TX descriptor impacted
 #define XCAN_DESC_ERR_INFO1_RX_DESCRIPTOR_HAS_AN_ISSUE  (1u << 15) //!< RX descriptor has an issue
 #define XCAN_DESC_ERR_INFO1_TX_DESCRIPTOR_HAS_AN_ISSUE  (0u << 15) //!< TX descriptor has an issue
 #define XCAN_DESC_ERR_INFO1_CRC_Pos                     16
 #define XCAN_DESC_ERR_INFO1_CRC_Mask                    (0x1FFu << XCAN_DESC_ERR_INFO1_CRC_Pos)
-#define XCAN_DESC_ERR_INFO1_CRC_GET(value)              ((uint32_t)(value) & XCAN_DESC_ERR_INFO1_CRC_Mask) >> XCAN_DESC_ERR_INFO1_CRC_Pos) //!< Get CRC value defined in the RX or TX descriptor logged in
+#define XCAN_DESC_ERR_INFO1_CRC_GET(value)              (((uint32_t)(value) & XCAN_DESC_ERR_INFO1_CRC_Mask) >> XCAN_DESC_ERR_INFO1_CRC_Pos) //!< Get CRC value defined in the RX or TX descriptor logged in
 
 //-----------------------------------------------------------------------------
 
@@ -1686,7 +2696,7 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_FILTER_ERR_INFO_Register, 4);
 #define XCAN_TX_FILTER_ERR_INFO_PRIORITY_QUEUE_TRIGGERED  (0u << 0) //!< One of the TX Priority Queues slot has triggered the TX_FILTER_ERR interrupt
 #define XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Pos               1
 #define XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Mask              (0x1Fu << XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Pos)
-#define XCAN_TX_FILTER_ERR_INFO_FQN_PQS_GET(value)        ((uint32_t)(value) & XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Mask) >> XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Pos) //!< Get the information of the TX FIFO Queue number or TX Priority Queue slot number
+#define XCAN_TX_FILTER_ERR_INFO_FQN_PQS_GET(value)        (((uint32_t)(value) & XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Mask) >> XCAN_TX_FILTER_ERR_INFO_FQN_PQS_Pos) //!< Get the information of the TX FIFO Queue number or TX Priority Queue slot number
 
 //-----------------------------------------------------------------------------
 
@@ -1723,8 +2733,8 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_DEBUG_TEST_CTRL_Register, 4);
 #define XCAN_DEBUG_TEST_CTRL_HDP_DIS             (0u << 2) //!< The disable the hardware debug port to monitor MH internal signals
 #define XCAN_DEBUG_TEST_CTRL_HDP_SEL_Pos         8
 #define XCAN_DEBUG_TEST_CTRL_HDP_SEL_Mask        (0x7u << XCAN_DEBUG_TEST_CTRL_HDP_SEL_Pos)
-#define XCAN_DEBUG_TEST_CTRL_HDP_SEL_GET(value)  ((uint32_t)(value) & XCAN_DEBUG_TEST_CTRL_HDP_SEL_Mask) >> XCAN_DEBUG_TEST_CTRL_HDP_SEL_Pos) //!< Get the set of signals to be monitored on the HDP[15:0] bus signal interface
-#define XCAN_DEBUG_TEST_CTRL_HDP_SEL_SET(value)  ((uint32_t)(value) << XCAN_DEBUG_TEST_CTRL_HDP_SEL_Pos) & XCAN_DEBUG_TEST_CTRL_HDP_SEL_Mask) //!< Set the set of signals to be monitored on the HDP[15:0] bus signal interface
+#define XCAN_DEBUG_TEST_CTRL_HDP_SEL_GET(value)  (((uint32_t)(value) & XCAN_DEBUG_TEST_CTRL_HDP_SEL_Mask) >> XCAN_DEBUG_TEST_CTRL_HDP_SEL_Pos) //!< Get the set of signals to be monitored on the HDP[15:0] bus signal interface
+#define XCAN_DEBUG_TEST_CTRL_HDP_SEL_SET(value)  (((uint32_t)(value) << XCAN_DEBUG_TEST_CTRL_HDP_SEL_Pos) & XCAN_DEBUG_TEST_CTRL_HDP_SEL_Mask) //!< Set the set of signals to be monitored on the HDP[15:0] bus signal interface
 
 //-----------------------------------------------------------------------------
 
@@ -1755,26 +2765,26 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_INT_TEST0_Register, 4);
 #define XCAN_TX_SCAN_FC_FQ_PQ0_TX_FIFO_QUEUE      (0u << 0) //!< The first candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos           1
 #define XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN0_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos) //!< Get the first candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
-#define XCAN_TX_SCAN_FQN_PQSN0_PQSN_SET(value)    ((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask) //!< Set the first candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN0_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos) //!< Get the first candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN0_PQSN_SET(value)    (((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask) //!< Set the first candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 #define XCAN_TX_SCAN_FC_FQ_PQ1_TX_PRIORITY_QUEUE  (1u << 8) //!< The second candidate evaluated by TX-Scan is a TX Priority Queue
 #define XCAN_TX_SCAN_FC_FQ_PQ1_TX_FIFO_QUEUE      (0u << 8) //!< The second candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos           9
 #define XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN1_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos) //!< Get the second candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
-#define XCAN_TX_SCAN_FQN_PQSN1_PQSN_SET(value)    ((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask) //!< Set the second candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN1_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos) //!< Get the second candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN1_PQSN_SET(value)    (((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask) //!< Set the second candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 #define XCAN_TX_SCAN_FC_FQ_PQ2_TX_PRIORITY_QUEUE  (1u << 16) //!< The third candidate evaluated by TX-Scan is a TX Priority Queue
 #define XCAN_TX_SCAN_FC_FQ_PQ2_TX_FIFO_QUEUE      (0u << 16) //!< The third candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos           17
 #define XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN2_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos) //!< Get the third candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
-#define XCAN_TX_SCAN_FQN_PQSN2_PQSN_SET(value)    ((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask) //!< Set the third candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN2_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos) //!< Get the third candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN2_PQSN_SET(value)    (((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask) //!< Set the third candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 #define XCAN_TX_SCAN_FC_FQ_PQ3_TX_PRIORITY_QUEUE  (1u << 24) //!< The fourth candidate evaluated by TX-Scan is a TX Priority Queue
 #define XCAN_TX_SCAN_FC_FQ_PQ3_TX_FIFO_QUEUE      (0u << 24) //!< The fourth candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos           25
 #define XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN3_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos) //!< Get the fourth candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
-#define XCAN_TX_SCAN_FQN_PQSN3_PQSN_SET(value)    ((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask) //!< Set the fourth candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN3_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos) //!< Get the fourth candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN3_PQSN_SET(value)    (((uint32_t)(value) << XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos) & XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask) //!< Set the fourth candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 
 //-----------------------------------------------------------------------------
 
@@ -1879,22 +2889,22 @@ XCAN_CONTROL_ITEM_SIZE(XCAN_TX_SCAN_FC_Register, 4);
 #define XCAN_TX_SCAN_FC_FQ_PQ0_TX_FIFO_QUEUE      (0u << 0) //!< The first candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos           1
 #define XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN0_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos) //!< Get the first candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN0_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN0_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN0_PQSN_Pos) //!< Get the first candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 #define XCAN_TX_SCAN_FC_FQ_PQ1_TX_PRIORITY_QUEUE  (1u << 8) //!< The second candidate evaluated by TX-Scan is a TX Priority Queue
 #define XCAN_TX_SCAN_FC_FQ_PQ1_TX_FIFO_QUEUE      (0u << 8) //!< The second candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos           9
 #define XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN1_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos) //!< Get the second candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN1_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN1_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN1_PQSN_Pos) //!< Get the second candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 #define XCAN_TX_SCAN_FC_FQ_PQ2_TX_PRIORITY_QUEUE  (1u << 16) //!< The third candidate evaluated by TX-Scan is a TX Priority Queue
 #define XCAN_TX_SCAN_FC_FQ_PQ2_TX_FIFO_QUEUE      (0u << 16) //!< The third candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos           17
 #define XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN2_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos) //!< Get the third candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN2_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN2_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN2_PQSN_Pos) //!< Get the third candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 #define XCAN_TX_SCAN_FC_FQ_PQ3_TX_PRIORITY_QUEUE  (1u << 24) //!< The fourth candidate evaluated by TX-Scan is a TX Priority Queue
 #define XCAN_TX_SCAN_FC_FQ_PQ3_TX_FIFO_QUEUE      (0u << 24) //!< The fourth candidate evaluated by TX-Scan is a TX FIFO Queue
 #define XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos           25
 #define XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask          (0x1Fu << XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos)
-#define XCAN_TX_SCAN_FQN_PQSN3_PQSN_GET(value)    ((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos) //!< Get the fourth candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
+#define XCAN_TX_SCAN_FQN_PQSN3_PQSN_GET(value)    (((uint32_t)(value) & XCAN_TX_SCAN_FQN_PQSN3_PQSN_Mask) >> XCAN_TX_SCAN_FQN_PQSN3_PQSN_Pos) //!< Get the fourth candidate is coming from either the TX FIFO Queue number N or the TX Priority Queue Slot number M
 
 //-----------------------------------------------------------------------------
 
@@ -2407,11 +3417,11 @@ typedef enum
   XCAN_RX_RECESSIVE = 0b1, //!< Recessive ('1') level at pin CANRX
 } eXCAN_TestRxPin;
 
-#define XCAN_PC_TEST_RX_Pos          3
-#define XCAN_PC_TEST_RX_Mask         (0x1u << XCAN_PC_TEST_RX_Pos)
-#define XCAN_PC_TEST_RX_GET(value)   (((uint32_t)(value) & XCAN_PC_TEST_RX_Mask) >> XCAN_PC_TEST_RX_Pos) //!< Get Receive Pin status
-#define XCAN_PC_TEST_RX_RECESSIVE    (0x1u << 7) //!< The CAN bus is recessive (CANRX = '1')
-#define XCAN_PC_TEST_RX_DOMINANT     (0x0u << 7) //!< The CAN bus is dominant (CANRX = '0')
+#define XCAN_PC_TEST_RX_Pos         3
+#define XCAN_PC_TEST_RX_Mask        (0x1u << XCAN_PC_TEST_RX_Pos)
+#define XCAN_PC_TEST_RX_GET(value)  (((uint32_t)(value) & XCAN_PC_TEST_RX_Mask) >> XCAN_PC_TEST_RX_Pos) //!< Get Receive Pin status
+#define XCAN_PC_TEST_RX_RECESSIVE   (0x1u << 7) //!< The CAN bus is recessive (CANRX = '1')
+#define XCAN_PC_TEST_RX_DOMINANT    (0x0u << 7) //!< The CAN bus is dominant (CANRX = '0')
 
 //! Control of Transmit Pin enumerator
 typedef enum
